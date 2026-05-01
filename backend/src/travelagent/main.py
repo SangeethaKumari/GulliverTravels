@@ -130,11 +130,13 @@ async def chat(request_body: ChatRequest, token: str = Depends(verify_token)):
         full_response_text = ""
         for event in events:
             if hasattr(event, 'content') and event.content:
-                for part in event.content.parts:
-                    if part.text:
-                        full_response_text += part.text
+                # We extract the text from the current event
+                current_text = "".join([part.text for part in event.content.parts if part.text])
+                if current_text.strip():
+                    # Instead of +=, we use = to ensure we only get the LATEST agent's final answer
+                    full_response_text = current_text
         
-        return {"response": full_response_text or "No response from agent"}
+        return {"response": full_response_text.strip() or "No response from agent"}
     except Exception as e:
         logger.error(f"Chat Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -161,7 +163,7 @@ async def transcribe(request: TranscribeRequest, token: str = Depends(verify_tok
         
         # Initialize the LiteLLM model with the custom endpoint
         llm = LiteLlm(
-            model="openai/openai/gpt-oss-20b",
+            model="gemini/gemini-3-pro-preview",
             api_base=os.getenv("LITELLM_API_BASE", "http://10.0.10.51:8124/v1"),
             api_key=os.getenv("LITELLM_API_KEY", "sv-openai-api-key")
         )
