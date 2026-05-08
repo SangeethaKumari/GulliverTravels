@@ -111,6 +111,17 @@ class AddResponse(BaseModel):
     result: float
     operation: str
 
+
+# ── Companion Models ──────────────────────────────────
+class CompanionRequest(BaseModel):
+    flight_number: str = "UA123"
+    user_id: str = "user-1"
+    scenario: Optional[str] = None  # A, B, C, D — or None for current mock state
+
+
+class CompanionScenarioRequest(BaseModel):
+    scenario: str  # A, B, C, D
+
 # ── Routes ────────────────────────────────────────────
 @app.get("/health")
 async def health_check():
@@ -245,6 +256,110 @@ async def call_add_tool(
         raise HTTPException(status_code=504, detail="MCP server timed out")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── Companion Endpoints ───────────────────────────────
+from .companion import mocks as companion_mocks
+from .companion.orchestrator import Orchestrator as CompanionOrchestrator
+from .companion.composer import HeuristicComposer
+from .companion.scenarios import scenario_A, scenario_B, scenario_C, scenario_D
+from datetime import datetime, timezone
+
+_SCENARIO_MAP = {
+    "A": scenario_A,
+    "B": scenario_B,
+    "C": scenario_C,
+    "D": scenario_D,
+}
+
+
+@app.post("/companion/scenario")
+async def set_companion_scenario(
+    body: CompanionScenarioRequest,
+    token: str = Depends(verify_token)
+):
+    """Load a predefined test scenario (A/B/C/D) into the mock layer."""
+    key = body.scenario.upper()
+    factory = _SCENARIO_MAP.get(key)
+    if not factory:
+        raise HTTPException(status_code=400,
+                            detail=f"Unknown scenario '{body.scenario}'. Use A, B, C, or D.")
+    state = factory()
+    companion_mocks.set_scenario(state)
+    companion_mocks.set_now(datetime(2026, 5, 7, 12, 0, tzinfo=timezone.utc))
+    logger.info(f"Companion scenario set to {key}: {state.name}")
+    return {"scenario": key, "name": state.name}
+
+
+@app.post("/companion/run")
+async def run_companion(
+    body: CompanionRequest,
+    token: str = Depends(verify_token)
+):
+    """
+    Run one companion orchestration cycle.
+    Optionally set a scenario first via the `scenario` field.
+    Returns the full decision, notifications, calendar updates, and rides.
+    """
+    if body.scenario:
+        key = body.scenario.upper()
+        factory = _SCENARIO_MAP.get(key)
+        if not factory:
+            raise HTTPException(status_code=400,
+                                detail=f"Unknown scenario '{body.scenario}'.")
+        companion_mocks.set_scenario(factory())
+        companion_mocks.set_now(datetime(2026, 5, 7, 12, 0, tzinfo=timezone.utc))
+
+    try:
+        orch = CompanionOrchestrator(user_name="Sam",
+                                     composer=HeuristicComposer())
+        result = orch.run_cycle(flight_number=body.flight_number,
+                                user_id=body.user_id)
+
+        return {
+            "scenario": result.scenario,
+            "decision": result.decision.decision,
+            "p_on_time": result.decision.p_on_time,
+            "adjusted_p_on_time": result.decision.adjusted_p_on_time,
+            "meeting_weight": result.decision.meeting_weight,
+            "risk_multiplier": result.decision.risk_multiplier,
+            "risk_factors": result.decision.risk_output.risk_factors,
+            "rationale": result.decision.rationale,
+            "time_rationale": result.decision.time_output.rationale,
+            "risk_rationale": result.decision.risk_output.rationale,
+            "impact_rationale": result.decision.impact_output.rationale,
+            "notifications": [
+                {
+                    "channel": n["channel"],
+                    "to": n["to"],
+                    "message": n["message"],
+                    "rewards": n["rewards"],
+                }
+                for n in result.log.notifications
+            ],
+            "calendar_updates": result.log.calendar_updates,
+            "rides_booked": result.log.rides_booked,
+            "rides_cancelled": result.log.rides_cancelled,
+        }
+    except Exception as e:
+        logger.error(f"Companion error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/companion/tools")
+async def list_companion_tools(token: str = Depends(verify_token)):
+    """List the MCP tools available for the travel companion."""
+    return {
+        "tools": [
+            {"name": "get_flight_status", "description": "Real-time flight status"},
+            {"name": "get_weather", "description": "Weather conditions and trend"},
+            {"name": "estimate_route", "description": "Drive time under current traffic"},
+            {"name": "get_calendar_events", "description": "Upcoming calendar events"},
+            {"name": "book_ride", "description": "Pre-book a rideshare"},
+            {"name": "cancel_ride", "description": "Cancel a booked ride"},
+        ]
+    }
+
 
 # ── Entry Point ───────────────────────────────────────
 if __name__ == "__main__":
