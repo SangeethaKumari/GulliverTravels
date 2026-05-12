@@ -14,15 +14,15 @@ Apart from the addition and serper_search tools that are defined within this fil
 """
 
 from fastmcp import FastMCP
-from tools.search_flights import Flight,Departure,Arrival,fetch_fights_static_info
-from tools.search_news import fetch_serper_news
-from tools.flight_status import flight_status
-from tools.add_tool import add
+from tools.tools import add,fetch_fights_info,fetch_serper_news,flight_status_realtime
+mcp = FastMCP(name="Gulliver_Test Agent")
 
 
+"""################################## MCP module for tGuliver Travels agent ################################## """
 
-mcp = FastMCP(name="NJ_Test Agent")
-
+#####################################################################
+#   Author ----------------------------NJ                           #
+#####################################################################
 @mcp.tool()
 def addition(a: int, b: int) -> int:
     """
@@ -42,14 +42,27 @@ def flight_search() -> str:
     """
     Fetch Flight information using the Serper API and google flights.
     """
-    return fetch_fights_static_info()
+    return fetch_fights_info()
 
 @mcp.tool
 def flight_status() -> str:
     """
     Fetch Flight Status real time 
     """
-    return flight_status()
+    return flight_status_realtime()
+
+#####################################################################
+#   Author ----------------------------Vani                          #
+#####################################################################
+
+
+
+
+
+#####################################################################
+#   Author ----------------------------SR                          #
+#####################################################################
+
 
 if __name__ == "__main__":
     mcp.run(transport="http", host="127.0.0.1", port=9000)
