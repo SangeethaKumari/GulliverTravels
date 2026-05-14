@@ -3,13 +3,18 @@ name = "gullivertravels"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.136.0",
     "fastmcp>=3.2.4",
+    "google>=3.0.0",
     "google-adk>=1.31.1",
+    "openinference-instrumentation-google-adk>=0.1.6",
+    "google-cloud-aiplatform[adk,agent-engines]>=1.122.0",
     "httpx>=0.28.1",
     "litellm>=1.83.0",
+    "pandas>=3.0.3",
     "python-dotenv>=1.2.2",
+    "serpapi>=1.0.2",
     "uvicorn>=0.45.0",
 ]

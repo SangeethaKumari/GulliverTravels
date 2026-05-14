@@ -79,11 +79,11 @@ def fetch_serper_news(query: str) -> str:
         if not organic_results:
             return f"No search results found for '{query}'."
 
-        print(f"organic_results: {organic_results}")
+        #print(f"organic_results: {organic_results}")
         
         # Format the results as a string
         formatted_results = [f"**Serper Search Results for '{query}':**\n"]
-        print(f"Formatted_results: {formatted_results}")
+        #print(f"Formatted_results: {formatted_results}")
         
         for i, result in enumerate(organic_results[:8], 1):
             title = result.get("title", "No title")
@@ -97,7 +97,7 @@ def fetch_serper_news(query: str) -> str:
                 f"   **Summary:** {snippet}\n"
                 f"   **Date:** {date}\n"
             )
-        print(f"Formatted_results: {formatted_results}")
+        #print(f"Formatted_results: {formatted_results}")
         return "\n".join(formatted_results)
     else:
         return f"Error: {response.status_code}, {response.text}"
@@ -106,7 +106,7 @@ def fetch_serper_news(query: str) -> str:
 ##################################################################################
 
 
-def fetch_fights_info(departure_airport: str,arrival_airport:str,outbound_date:str,return_date:str):
+def fetch_fights_info(departure_airport: str,arrival_airport:str,outbound_date,return_date):
      
     """
     Search for the best flights for given paramerts
@@ -114,8 +114,8 @@ def fetch_fights_info(departure_airport: str,arrival_airport:str,outbound_date:s
     Args:
         departure_airport(str):  from where are departing for example SFO
         arrival_airport(str):  from where are you want to arrive for example LAX
-        outbound_date(str):   when do you want to start  
-        return_date(str): when do you want to come back.
+        outbound_date:   when do you want to start  
+        return_date: when do you want to come back.
 
     Returns:
         String : String values with list of values such as 
@@ -170,7 +170,7 @@ def fetch_fights_info(departure_airport: str,arrival_airport:str,outbound_date:s
 
 ##################################################################################
 
-def flight_status_realtime(airline_code,flight_number,arrival_date):
+def flight_status_realtime(airline_code:str,flight_number:str,input_date):
 
     """
     get the flight status in real time
@@ -178,8 +178,8 @@ def flight_status_realtime(airline_code,flight_number,arrival_date):
     Args:
 
         airline_code(str):  Airport code where you are arriving  for example SFO
-        flight_number(str): Flight number LAX
-        arrival_date(str):  Data on when you are arriving 
+        flight_number(Int): Flight number 1586
+        input_date(str):  Data on when you are arriving . Make sure this is equal or greater then current date
       
 
     Returns:
@@ -197,11 +197,17 @@ def flight_status_realtime(airline_code,flight_number,arrival_date):
         >>> flight_status_realtime("AA",6185,'20260507')
         
     """
+    if isinstance(input_date, date):
+        input_date = input_date.strftime("%Y%m%d")
+
+    if datetime.strptime(input_date, "%Y%m%d").date() < date.today():
+        raise ValueError(f"Date cannot be in the past: {input_date}")
+
     # Get API key
     API_KEY=os.getenv("FLIGHT_API_KEY")
     # 2. Build the Endpoint URL
     # The structure is: https://flightapi.io
-    url = f"https://api.flightapi.io/airline/{API_KEY}?num={flight_number}&name={airline_code}&date={arrival_date}"
+    url = f"https://api.flightapi.io/airline/{API_KEY}?num={flight_number}&name={airline_code}&date={input_date}"
 
     try:
         # 3. Make the Request
@@ -212,29 +218,30 @@ def flight_status_realtime(airline_code,flight_number,arrival_date):
     
         # 4. Parse and Print the JSON Data
         data = response.json()
+        #print(data)
         print("Flight Data Received:")
-        flights = data.get("flights")
+        departure = data[0]
+        arrival = data[1]
+        status = data[3]
         formatted_results = [f"**Flights Status Results ':**\n"]
-        for index , flight in enumerate(flights,start=1):
-            airlineCode= flight.get("airlineCode")
-            flightNumber= flight.get("flightNumber")
-            displayStatus= flight.get("displayStatus")
-            departureTime = flight.get("departureTime")
-            departureAirportCode = flight.get("departureAirportCode")
-            arrivalAirportCode = flight.get("arrivalAirportCode")
-            arrivalTime = flight.get("arrivalTime")
+        departure_airport_code = departure.get("departure").get("airportCode")
+        departure_time = departure.get("departure").get("departureDateTime")
+        arrival_airport_code = arrival.get("arrival").get("airportCode")
+        arrival_time = arrival.get("arrival").get("arrivalDateTime")
+        airlineCode = airline_code
+        flightNumber = flight_number
+        displayStatus = status.get("status")
 
-            formatted_results.append(
-                f"{index}. **departure_airport:** {departureAirportCode}\n"
-                f"   **departure_time:** {departureTime}\n"
-                f"   **arrival_airport:** {arrivalAirportCode}\n"
-                f"   **arrival_time:** {arrivalTime}\n" 
+        formatted_results.append(
+                f" **departure_airport:** {departure_airport_code}\n"
+                f"   **departure_time:** {departure_time}\n"
+                f"   **arrival_airport:** {arrival_airport_code}\n"
+                f"   **arrival_time:** {arrival_time}\n" 
                 f"   **airline:** {airlineCode}\n"
                 f"   **flight_nubmer:** {flightNumber}\n"
                 f"   **Status:** {displayStatus}\n"
                 )
-        print("\n".join(formatted_results))
-
+        
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred: {http_err}")
     except Exception as err:
@@ -257,3 +264,8 @@ def flight_status_realtime(airline_code,flight_number,arrival_date):
 #####################################################################
 #   Author ----------------------------SR                         #
 #####################################################################
+
+
+
+#print(flight_status_realtime("AA",2426,'20260514'))
+#print(fetch_fights_info("SFO","LAX","2026-05-15","2026-05-20"))

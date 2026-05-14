@@ -38,18 +38,18 @@ def serper_search(query: str) -> str:
     return fetch_serper_news(query)
 
 @mcp.tool
-def flight_search() -> str:
+def flight_search(departure_airport: str,arrival_airport:str,outbound_date,return_date) -> str:
     """
     Fetch Flight information using the Serper API and google flights.
     """
-    return fetch_fights_info()
+    return fetch_fights_info(departure_airport,arrival_airport,outbound_date,return_date)
 
 @mcp.tool
-def flight_status() -> str:
+def flight_status(airline_code:str,flight_number:str,input_date) -> str:
     """
     Fetch Flight Status real time 
     """
-    return flight_status_realtime()
+    return flight_status_realtime(airline_code,flight_number,input_date)
 
 #####################################################################
 #   Author ----------------------------Vani                          #
