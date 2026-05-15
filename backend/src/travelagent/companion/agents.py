@@ -17,6 +17,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from . import mcp_tools, mocks
+from .signals import TimeSignal, RiskSignal, ImpactSignal
 
 
 # ---------------------------------------------------------------------------
@@ -31,6 +32,10 @@ class TimeAgentOutput:
     percentile_90: datetime  # worst case
     rationale: str
 
+    @property
+    def signal(self) -> TimeSignal:
+        return TimeSignal.from_probability(self.p_arrive_by_deadline)
+
 
 @dataclass
 class RiskAgentOutput:
@@ -39,6 +44,10 @@ class RiskAgentOutput:
     confidence: float
     rationale: str
 
+    @property
+    def signal(self) -> RiskSignal:
+        return RiskSignal.from_multiplier(self.delay_multiplier, self.risk_factors)
+
 
 @dataclass
 class ImpactAgentOutput:
@@ -46,6 +55,10 @@ class ImpactAgentOutput:
     attendee_list: list
     cancellation_flexibility: float
     rationale: str
+
+    @property
+    def signal(self) -> ImpactSignal:
+        return ImpactSignal.from_weight(self.meeting_weight)
 
 
 # ---------------------------------------------------------------------------

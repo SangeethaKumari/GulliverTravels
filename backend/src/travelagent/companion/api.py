@@ -24,6 +24,10 @@ from . import mocks
 from .composer import HeuristicComposer
 from .orchestrator import Orchestrator
 from .scenarios import scenario_A, scenario_B, scenario_C, scenario_D
+from .monitor import AmbientOrchestrator
+from .persistence import DB
+from .timelines import ALL_TIMELINES
+import copy
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -57,6 +61,16 @@ class CompanionRequest(BaseModel):
 
 class ScenarioRequest(BaseModel):
     scenario: str
+
+
+class TimelineRequest(BaseModel):
+    timeline: str = "storm"  # storm | friday | cancel_recovery | landed
+    flight_number: str = "UA123"
+    user_id: str = "user-1"
+
+
+class TripStatusRequest(BaseModel):
+    trip_id: str
 
 
 @app.get("/health")
@@ -124,6 +138,71 @@ async def list_tools():
             {"name": "cancel_ride", "description": "Cancel a booked ride"},
         ]
     }
+
+
+# ── Ambient Monitoring Endpoints ──────────────────────
+
+@app.post("/companion/timeline")
+async def run_timeline(body: TimelineRequest):
+    """Simulate a multi-step timeline (e.g. 'storm hits at iteration 7').
+    
+    Returns per-iteration results showing how the orchestrator reacts
+    to state transitions over time — the core ambient agent demo.
+    """
+    factory = ALL_TIMELINES.get(body.timeline)
+    if not factory:
+        raise HTTPException(400,
+            f"Unknown timeline '{body.timeline}'. "
+            f"Available: {list(ALL_TIMELINES.keys())}")
+
+    steps = factory()
+    # Deep copy since simulate_timeline mutates step dicts
+    steps_copy = [copy.deepcopy(s) for s in steps]
+
+    import uuid
+    trip_id = f"trip-{uuid.uuid4().hex[:8]}"
+    db = DB(":memory:")
+    orch = AmbientOrchestrator(db=db, user_name="Sam",
+                                composer=HeuristicComposer())
+
+    results = orch.simulate_timeline(
+        trip_id=trip_id,
+        flight_number=body.flight_number,
+        user_id=body.user_id,
+        timeline_steps=steps_copy,
+    )
+
+    # Also return persisted data for inspection
+    snapshots = db.get_snapshots(trip_id)
+    committee_runs = db.get_committee_runs(trip_id)
+    actions = db.get_actions(trip_id)
+    trip = db.get_trip(trip_id)
+    db.close()
+
+    return {
+        "trip_id": trip_id,
+        "trip_status": trip["status"] if trip else "unknown",
+        "timeline": body.timeline,
+        "iterations": results,
+        "summary": {
+            "total_polls": len(results),
+            "committee_runs": len(committee_runs),
+            "actions_dispatched": len(actions),
+            "final_decision": results[-1]["decision"] if results else None,
+            "decisions_over_time": [r["decision"] for r in results],
+        },
+        "persistence": {
+            "snapshots": len(snapshots),
+            "committee_runs": len(committee_runs),
+            "actions": len(actions),
+        },
+    }
+
+
+@app.get("/companion/timelines")
+async def list_timelines():
+    """List available timeline scenarios."""
+    return {"timelines": list(ALL_TIMELINES.keys())}
 
 
 if __name__ == "__main__":
