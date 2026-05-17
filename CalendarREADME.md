@@ -57,7 +57,6 @@ All modules import from:
 ```
 
 ---
-
 ## ⚙️ Prerequisites
 
 - Python 3.11+
