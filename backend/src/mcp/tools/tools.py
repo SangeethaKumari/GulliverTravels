@@ -1,4 +1,5 @@
 from __future__ import annotations
+from tokenize import String
 import requests
 from datetime import datetime, date, time
 from typing import List, final
@@ -7,6 +8,7 @@ import serpapi
 import os
 import requests
 import pandas as pd
+from flightpydantic import FlightStatusRealtime
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -106,7 +108,7 @@ def fetch_serper_news(query: str) -> str:
 ##################################################################################
 
 
-def fetch_fights_info(departure_airport: str,arrival_airport:str,outbound_date,return_date):
+def fetch_fights_info(departure_airport: str,arrival_airport:str,outbound_date:date,return_date:date):
      
     """
     Search for the best flights for given paramerts
@@ -114,8 +116,8 @@ def fetch_fights_info(departure_airport: str,arrival_airport:str,outbound_date,r
     Args:
         departure_airport(str):  from where are departing for example SFO
         arrival_airport(str):  from where are you want to arrive for example LAX
-        outbound_date:   when do you want to start  
-        return_date: when do you want to come back.
+        outbound_date(date):   when do you want to start  
+        return_date(date): when do you want to come back.
 
     Returns:
         String : String values with list of values such as 
@@ -170,8 +172,10 @@ def fetch_fights_info(departure_airport: str,arrival_airport:str,outbound_date,r
 
 ##################################################################################
 
-def flight_status_realtime(airline_code:str,flight_number:str,input_date):
+def flight_status_realtime(airline_code:str,flight_number:str,input_date:date):
 
+    
+    print(f"Input date prodived is {input_date} and the type is {type(input_date)}")
     """
     get the flight status in real time
 
@@ -179,7 +183,7 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date):
 
         airline_code(str):  Airport code where you are arriving  for example SFO
         flight_number(Int): Flight number 1586
-        input_date(str):  Data on when you are arriving . Make sure this is equal or greater then current date
+        input_date(date):  Data on when you are arriving . Make sure this is equal or greater then current date
       
 
     Returns:
@@ -199,6 +203,8 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date):
     """
     if isinstance(input_date, date):
         input_date = input_date.strftime("%Y%m%d")
+    
+
 
     if datetime.strptime(input_date, "%Y%m%d").date() < date.today():
         raise ValueError(f"Date cannot be in the past: {input_date}")
@@ -219,7 +225,7 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date):
         # 4. Parse and Print the JSON Data
         data = response.json()
         #print(data)
-        print("Flight Data Received:")
+        #print("Flight Data Received:")
         departure = data[0]
         arrival = data[1]
         status = data[3]
@@ -232,22 +238,22 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date):
         flightNumber = flight_number
         displayStatus = status.get("status")
 
-        formatted_results.append(
-                f" **departure_airport:** {departure_airport_code}\n"
-                f"   **departure_time:** {departure_time}\n"
-                f"   **arrival_airport:** {arrival_airport_code}\n"
-                f"   **arrival_time:** {arrival_time}\n" 
-                f"   **airline:** {airlineCode}\n"
-                f"   **flight_nubmer:** {flightNumber}\n"
-                f"   **Status:** {displayStatus}\n"
-                )
-        
+        results = FlightStatusRealtime(
+            Departure_Airport=departure_airport_code,
+            Departure_Time=departure_time,
+            Arrival_Airport=arrival_airport_code,
+            Arrival_Time=arrival_time,
+            airline_code=airlineCode,
+            flight_nubmer=flightNumber,
+            Status=displayStatus
+        )
+
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred: {http_err}")
     except Exception as err:
         print(f"An error occurred: {err}")
 
-    return("\n".join(formatted_results))
+    return(results)
 
 
 
@@ -267,5 +273,5 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date):
 
 
 
-#print(flight_status_realtime("AA",2426,'20260514'))
-#print(fetch_fights_info("SFO","LAX","2026-05-15","2026-05-20"))
+print(flight_status_realtime("AA",9305,date(2026,5,16)))
+#print(fetch_fights_info("SFO","LAX","2026-05-17",Date(2026-05-20))
