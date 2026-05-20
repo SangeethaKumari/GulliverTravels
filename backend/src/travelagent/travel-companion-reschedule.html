@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Companion — Rescheduling Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F2EC;
+    --bg2: #EDE9E0;
+    --surface: #FFFFFF;
+    --border: #D8D2C4;
+    --border2: #C4BCAA;
+    --text: #1C1A16;
+    --text2: #5C5648;
+    --text3: #8C8478;
+    --green: #1A6B3A;
+    --green-l: #E8F5EE;
+    --green-mid: #2D9C57;
+    --red: #B03020;
+    --red-l: #FAEAE7;
+    --amber: #9B6010;
+    --amber-l: #FDF3E3;
+    --blue: #1A4A8A;
+    --blue-l: #E8EFF8;
+    --accent: #2A5C8A;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Instrument Serif', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--text);
+    color: var(--bg);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 2px solid #333;
+  }
+  .header-icon {
+    font-size: 22px;
+  }
+  .header-title {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-style: italic;
+    color: #F5F2EC;
+    letter-spacing: -0.3px;
+  }
+  .header-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #8C8478;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  /* ── STATUS GATE ── */
+  .status-gate {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .status-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+  .status-title {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+  .status-buttons {
+    display: flex;
+    gap: 12px;
+  }
+  .status-btn {
+    flex: 1;
+    padding: 16px 20px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-good {
+    background: var(--green-l);
+    color: var(--green);
+    border-color: #A8D4B8;
+  }
+  .btn-good:hover, .btn-good.active {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26,107,58,0.25);
+  }
+  .btn-late {
+    background: var(--red-l);
+    color: var(--red);
+    border-color: #E0B0A8;
+  }
+  .btn-late:hover, .btn-late.active {
+    background: var(--red);
+    color: white;
+    border-color: var(--red);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(176,48,32,0.25);
+  }
+
+  /* ── ALL GOOD STATE ── */
+  .all-good-state {
+    display: none;
+    background: var(--green-l);
+    border: 1px solid #A8D4B8;
+    border-radius: 12px;
+    padding: 28px;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+  .all-good-state h3 {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-style: italic;
+    color: var(--green);
+    margin: 12px 0 8px;
+  }
+  .all-good-state p {
+    color: var(--green);
+    font-size: 13px;
+    opacity: 0.8;
+  }
+  .all-good-state .big-check {
+    font-size: 48px;
+  }
+
+  /* ── WORKFLOW STEPS ── */
+  .workflow {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── STEP CARD ── */
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .step-card.active { border-color: var(--accent); }
+  .step-card.done { border-color: var(--green-mid); }
+  .step-card.locked { opacity: 0.5; }
+
+  .step-header {
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .step-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text3);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .step-card.active .step-num {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .step-card.done .step-num {
+    background: var(--green-mid);
+    color: white;
+    border-color: var(--green-mid);
+  }
+  .step-card.done .step-num::after {
+    content: '✓';
+  }
+  .step-card.done .step-num-inner { display: none; }
+
+  .step-info { flex: 1; }
+  .step-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 2px;
+  }
+  .step-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .step-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .status-pending { background: var(--bg2); color: var(--text3); }
+  .status-running { background: var(--blue-l); color: var(--blue); }
+  .status-done { background: var(--green-l); color: var(--green); }
+
+  .step-body {
+    border-top: 1px solid var(--border);
+    padding: 20px 24px;
+    display: none;
+  }
+  .step-card.active .step-body,
+  .step-card.done .step-body { display: block; }
+
+  /* ── CALENDAR FETCH ── */
+  .attendee-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .attendee-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .att-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .att-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .att-cal { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+  .att-status {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .avail { background: var(--green-l); color: var(--green); }
+  .busy { background: var(--red-l); color: var(--red); }
+  .fetching {
+    background: var(--amber-l); color: var(--amber);
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* ── FREEBUSY TIMELINE ── */
+  .freebusy-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+  .timeline-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .tl-row { display: flex; align-items: center; gap: 10px; }
+  .tl-name { font-size: 12px; color: var(--text2); width: 120px; flex-shrink: 0; }
+  .tl-track {
+    flex: 1;
+    height: 20px;
+    background: var(--bg2);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+  }
+  .tl-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-family: var(--mono);
+  }
+  .tl-free { background: #C8EDDB; color: var(--green); }
+  .tl-busy { background: #F5C4BE; color: var(--red); }
+  .tl-hours {
+    display: flex;
+    margin-left: 130px;
+    gap: 0;
+  }
+  .tl-hour {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    text-align: center;
+  }
+
+  /* ── OPTIONS ── */
+  .options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .option-card {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .option-card:hover { border-color: var(--accent); background: var(--blue-l); }
+  .option-card.selected { border-color: var(--accent); background: var(--blue-l); }
+  .option-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .option-card.selected .option-num {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .option-time {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .option-desc { font-size: 12px; color: var(--text2); }
+  .option-tag {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+  .tag-quick { background: var(--green-l); color: var(--green); }
+  .tag-flex { background: var(--amber-l); color: var(--amber); }
+  .tag-safe { background: var(--blue-l); color: var(--blue); }
+
+  /* ── MESSAGE BOX ── */
+  .message-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+    font-family: var(--sans);
+    white-space: pre-wrap;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .msg-channels {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .msg-channel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .msg-channel.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* ── FALLBACK ── */
+  .fallback-timer {
+    background: var(--amber-l);
+    border: 1px solid #E8C888;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .timer-icon { font-size: 20px; }
+  .timer-text { font-size: 13px; color: var(--amber); }
+  .timer-count {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--amber);
+    margin-left: auto;
+  }
+
+  .response-tracker {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .response-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .resp-name { font-size: 13px; color: var(--text); flex: 1; }
+  .resp-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .resp-confirmed { background: var(--green-l); color: var(--green); }
+  .resp-pending { background: var(--bg2); color: var(--text3); }
+  .resp-declined { background: var(--red-l); color: var(--red); }
+
+  /* ── ACTION BUTTONS ── */
+  .action-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .btn-primary {
+    padding: 10px 20px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover {
+    background: var(--accent);
+    transform: translateY(-1px);
+  }
+  .btn-secondary {
+    padding: 10px 20px;
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--text2); color: var(--text); }
+
+  /* ── CONFIRMED FINAL ── */
+  .confirmed-banner {
+    background: var(--green-l);
+    border: 1px solid #A8D4B8;
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    animation: fadeIn 0.4s ease;
+  }
+  .confirmed-icon { font-size: 32px; }
+  .confirmed-text h4 {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-style: italic;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+  .confirmed-text p { font-size: 12px; color: var(--green); opacity: 0.8; }
+
+  /* ── DIVIDER ── */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* ── INFO CALLOUT ── */
+  .info-callout {
+    background: var(--blue-l);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--blue);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .info-callout strong { font-weight: 600; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .attendee-grid { grid-template-columns: 1fr; }
+    .status-buttons { flex-direction: column; }
+    .action-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-icon">✈️</div>
+  <div class="header-title">Travel Companion</div>
+  <div class="header-sub">Rescheduling Agent · v1.0</div>
+</header>
+
+<div class="container">
+
+  <!-- STATUS GATE -->
+  <div class="status-gate">
+    <div class="status-label">Step 0 — Flight Status Check</div>
+    <div class="status-title">What is your current travel status?</div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--text2);">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Meeting context</span>
+      <strong style="color:var(--text);">Project Kickoff</strong> · 3:30 PM today · 4 attendees · Conference Room B
+    </div>
+    <div class="status-buttons">
+      <button class="status-btn btn-good" onclick="setStatus('good')">
+        <span>✅</span> ALL GOOD
+      </button>
+      <button class="status-btn btn-late" onclick="setStatus('late')">
+        <span>⚠️</span> LATE
+      </button>
+    </div>
+  </div>
+
+  <!-- ALL GOOD STATE -->
+  <div class="all-good-state" id="allGoodState">
+    <div class="big-check">✅</div>
+    <h3>You're on track — no action needed</h3>
+    <p>Meeting proceeds as scheduled at 3:30 PM. Travel Companion will continue monitoring your flight status and alert you if anything changes.</p>
+    <div style="margin-top:16px;padding:12px;background:white;border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--text3);text-align:left;">
+      <div>Next check-in: <strong style="color:var(--text);">T-60 minutes</strong></div>
+      <div>Monitoring: <strong style="color:var(--text);">SFO → ORD · UA 412</strong></div>
+    </div>
+  </div>
+
+  <!-- LATE WORKFLOW -->
+  <div class="workflow" id="lateWorkflow">
+
+    <div style="background:var(--red-l);border:1px solid #E0B0A8;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:20px;">⚠️</span>
+      <div>
+        <div style="font-weight:600;color:var(--red);font-size:13px;">Flight delay detected — 90 minutes late</div>
+        <div style="font-size:12px;color:var(--red);opacity:0.8;">SFO → ORD · UA 412 · New ETA: 3:45 PM · Meeting at 3:30 PM at risk</div>
+      </div>
+      <div style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--red);background:white;padding:4px 10px;border-radius:4px;">TRIGGERED</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step-card active" id="step1">
+      <div class="step-header" onclick="toggleStep(1)">
+        <div class="step-num"><span class="step-num-inner">01</span></div>
+        <div class="step-info">
+          <div class="step-tag">Step 1</div>
+          <div class="step-name">Fetch Calendars — Check Availability</div>
+        </div>
+        <span class="step-status status-running" id="s1status">Running</span>
+      </div>
+      <div class="step-body">
+        <div class="info-callout">
+          Querying freebusy endpoints for all attendees via <strong>Google Calendar API</strong>, <strong>Outlook Graph API</strong>, and <strong>Slack</strong>. Checking availability for the next 2 hours + rest of day.
+        </div>
+
+        <div class="freebusy-label">Attendee availability — 2:00 PM to 8:00 PM</div>
+        <div class="tl-hours">
+          <div class="tl-hour">2pm</div>
+          <div class="tl-hour">3pm</div>
+          <div class="tl-hour">4pm</div>
+          <div class="tl-hour">5pm</div>
+          <div class="tl-hour">6pm</div>
+          <div class="tl-hour">7pm</div>
+          <div class="tl-hour">8pm</div>
+        </div>
+        <div class="timeline-grid" style="margin-top:6px;">
+          <div class="tl-row">
+            <div class="tl-name">You (organizer)</div>
+            <div class="tl-track">
+              <div class="tl-seg tl-busy" style="width:25%;">busy</div>
+              <div class="tl-seg tl-free" style="width:75%;">free</div>
+            </div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-name">Alex Rivera</div>
+            <div class="tl-track">
+              <div class="tl-seg tl-free" style="width:33%;">free</div>
+              <div class="tl-seg tl-busy" style="width:17%;">busy</div>
+              <div class="tl-seg tl-free" style="width:50%;">free</div>
+            </div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-name">Jordan Lee</div>
+            <div class="tl-track">
+              <div class="tl-seg tl-free" style="width:50%;">free</div>
+              <div class="tl-seg tl-busy" style="width:17%;">busy</div>
+              <div class="tl-seg tl-free" style="width:33%;">free</div>
+            </div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-name">Morgan Patel</div>
+            <div class="tl-track">
+              <div class="tl-seg tl-free" style="width:67%;">free</div>
+              <div class="tl-seg tl-busy" style="width:16%;">busy</div>
+              <div class="tl-seg tl-free" style="width:17%;">free</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="attendee-grid">
+          <div class="attendee-card">
+            <div class="att-avatar" style="background:#E8EFF8;color:#1A4A8A;">AR</div>
+            <div>
+              <div class="att-name">Alex Rivera</div>
+              <div class="att-cal">Google Calendar</div>
+            </div>
+            <span class="att-status avail">free 4–8pm</span>
+          </div>
+          <div class="attendee-card">
+            <div class="att-avatar" style="background:#E8F5EE;color:#1A6B3A;">JL</div>
+            <div>
+              <div class="att-name">Jordan Lee</div>
+              <div class="att-cal">Outlook</div>
+            </div>
+            <span class="att-status avail">free 4–5pm</span>
+          </div>
+          <div class="attendee-card">
+            <div class="att-avatar" style="background:#FDF3E3;color:#9B6010;">MP</div>
+            <div>
+              <div class="att-name">Morgan Patel</div>
+              <div class="att-cal">Google Calendar</div>
+            </div>
+            <span class="att-status avail">free 4–6pm</span>
+          </div>
+          <div class="attendee-card">
+            <div class="att-avatar" style="background:#FAEAE7;color:#B03020;">You</div>
+            <div>
+              <div class="att-name">You (organizer)</div>
+              <div class="att-cal">Google Calendar</div>
+            </div>
+            <span class="att-status avail">free after 4pm</span>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-primary" onclick="completeStep(1)">Confirm Availability → Propose Options</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-card locked" id="step2">
+      <div class="step-header">
+        <div class="step-num"><span class="step-num-inner">02</span></div>
+        <div class="step-info">
+          <div class="step-tag">Step 2</div>
+          <div class="step-name">Propose Three Rescheduling Options</div>
+        </div>
+        <span class="step-status status-pending" id="s2status">Pending</span>
+      </div>
+      <div class="step-body">
+        <div class="info-callout">
+          Based on freebusy data, three options have been computed. Select the one you want to <strong>lead with</strong> — it becomes Option 1 in the message. All three will be included.
+        </div>
+
+        <div class="options-grid">
+          <div class="option-card" id="opt1" onclick="selectOption(1)">
+            <div class="option-num">1</div>
+            <div>
+              <div class="option-time">4:00 PM today</div>
+              <div class="option-desc">Defer 30 minutes. All 4 attendees available. Quickest fix — minimal disruption to the rest of the day.</div>
+            </div>
+            <span class="option-tag tag-quick">⚡ Quickest</span>
+          </div>
+          <div class="option-card" id="opt2" onclick="selectOption(2)">
+            <div class="option-num">2</div>
+            <div>
+              <div class="option-time">5:00 PM today</div>
+              <div class="option-desc">End-of-day slot. Alex + Morgan available; Jordan has a 5–6pm block. Less pressure, but Jordan may need to reschedule.</div>
+            </div>
+            <span class="option-tag tag-flex">⏱ Flexible</span>
+          </div>
+          <div class="option-card" id="opt3" onclick="selectOption(3)">
+            <div class="option-num">3</div>
+            <div>
+              <div class="option-time">Tomorrow 3:30 PM</div>
+              <div class="option-desc">Same time, next day. Most flexible for everyone. Most disruptive to project timeline — use as fallback.</div>
+            </div>
+            <span class="option-tag tag-safe">📅 Safe</span>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-primary" onclick="completeStep(2)" id="step2btn" disabled>Draft Message →</button>
+          <button class="btn-secondary" onclick="selectOption(1); completeStep(2)">Use Recommended (4pm)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-card locked" id="step3">
+      <div class="step-header">
+        <div class="step-num"><span class="step-num-inner">03</span></div>
+        <div class="step-info">
+          <div class="step-tag">Step 3</div>
+          <div class="step-name">Negotiate — Draft &amp; Send Message</div>
+        </div>
+        <span class="step-status status-pending" id="s3status">Pending</span>
+      </div>
+      <div class="step-body">
+        <div class="msg-channels">
+          <div class="msg-channel active" onclick="setChannel(this, 'email')">📧 Email</div>
+          <div class="msg-channel" onclick="setChannel(this, 'slack')">💬 Slack</div>
+          <div class="msg-channel" onclick="setChannel(this, 'calendar')">📅 Calendar invite</div>
+        </div>
+
+        <div class="message-box" id="msgBox" contenteditable="true">Hi team,
+
+My SFO flight is running 90 minutes late — should land at 3:45 PM instead of 2:00 PM. I'll be tight for our 3:30 PM Project Kickoff.
+
+I've checked everyone's calendar and I've provisioned three options:
+
+  1. 4:00 PM today (recommended — everyone's free)
+  2. 5:00 PM today
+  3. Tomorrow at 3:30 PM (same room)
+
+Please click one of the options in the updated calendar invite to confirm. If none of these work, I can dial in from the car once I'm out of the airport.
+
+Sorry for the inconvenience — I know this is short notice.
+
+— [Your Name]</div>
+
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;">Tone:</span>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="rewriteTone('formal')">More formal</button>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="rewriteTone('casual')">More casual</button>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="rewriteTone('brief')">Shorter</button>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-primary" onclick="completeStep(3)">Send Message + Updated Invite →</button>
+          <button class="btn-secondary">Preview Calendar Invite</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-card locked" id="step4">
+      <div class="step-header">
+        <div class="step-num"><span class="step-num-inner">04</span></div>
+        <div class="step-info">
+          <div class="step-tag">Step 4</div>
+          <div class="step-name">Fallback — Track Responses</div>
+        </div>
+        <span class="step-status status-pending" id="s4status">Pending</span>
+      </div>
+      <div class="step-body">
+        <div class="fallback-timer">
+          <div class="timer-icon">⏳</div>
+          <div class="timer-text">
+            <strong>30-minute response window active.</strong><br>
+            If no quorum by deadline, agent auto-reschedules to <strong>4:00 PM</strong> and notifies all attendees.
+          </div>
+          <div class="timer-count" id="timerDisplay">29:58</div>
+        </div>
+
+        <div class="freebusy-label">Response tracking</div>
+        <div class="response-tracker" id="responseTracker">
+          <div class="response-row">
+            <div class="resp-name">Alex Rivera</div>
+            <span class="resp-status resp-pending" id="resp1">Pending...</span>
+          </div>
+          <div class="response-row">
+            <div class="resp-name">Jordan Lee</div>
+            <span class="resp-status resp-pending" id="resp2">Pending...</span>
+          </div>
+          <div class="response-row">
+            <div class="resp-name">Morgan Patel</div>
+            <span class="resp-status resp-pending" id="resp3">Pending...</span>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-primary" onclick="simulateResponses()">Simulate Responses</button>
+          <button class="btn-secondary" onclick="forceFallback()">Force Fallback Now (4:00 PM)</button>
+        </div>
+
+        <div id="confirmedBanner" style="display:none;" class="confirmed-banner">
+          <div class="confirmed-icon">🎉</div>
+          <div class="confirmed-text">
+            <h4>Meeting rescheduled — quorum reached</h4>
+            <p>2 of 3 attendees confirmed 4:00 PM. Calendar updated. Confirmation sent to all attendees.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end workflow -->
+</div><!-- end container -->
+
+<script>
+  let selectedOption = null;
+  let timerInterval = null;
+  let timerSeconds = 1798;
+
+  function setStatus(status) {
+    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    if (status === 'good') {
+      document.querySelector('.btn-good').classList.add('active');
+      document.getElementById('allGoodState').style.display = 'block';
+      document.getElementById('lateWorkflow').style.display = 'none';
+    } else {
+      document.querySelector('.btn-late').classList.add('active');
+      document.getElementById('allGoodState').style.display = 'none';
+      document.getElementById('lateWorkflow').style.display = 'block';
+    }
+  }
+
+  function toggleStep(n) {
+    // steps are auto-opened by active class
+  }
+
+  function completeStep(n) {
+    const cur = document.getElementById('step' + n);
+    const next = document.getElementById('step' + (n + 1));
+    const sStatus = document.getElementById('s' + n + 'status');
+
+    cur.classList.remove('active');
+    cur.classList.add('done');
+    if (sStatus) { sStatus.textContent = 'Done'; sStatus.className = 'step-status status-done'; }
+
+    if (next) {
+      next.classList.remove('locked');
+      next.classList.add('active');
+      const ns = document.getElementById('s' + (n + 1) + 'status');
+      if (ns) { ns.textContent = 'Running'; ns.className = 'step-status status-running'; }
+      next.querySelector('.step-body').style.display = 'block';
+      next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      if (n + 1 === 4) startTimer();
+    }
+  }
+
+  function selectOption(n) {
+    selectedOption = n;
+    document.querySelectorAll('.option-card').forEach((c, i) => {
+      c.classList.toggle('selected', i === n - 1);
+    });
+    const btn = document.getElementById('step2btn');
+    if (btn) { btn.disabled = false; }
+  }
+
+  function setChannel(el, ch) {
+    document.querySelectorAll('.msg-channel').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    const box = document.getElementById('msgBox');
+    if (ch === 'slack') {
+      box.innerText = `Hey team 👋 my SFO flight is 90 min late (new ETA 3:45pm), so I'll miss our 3:30pm kickoff.\n\nCan we do one of these?\n• *4:00 PM today* ← recommended, everyone's free\n• 5:00 PM today\n• Tomorrow 3:30 PM\n\nReact with 1️⃣ 2️⃣ or 3️⃣ or click the updated invite. I can also dial in from the car if needed. Sorry for the scramble!`;
+    } else if (ch === 'calendar') {
+      box.innerText = `[Updated calendar invite — Project Kickoff]\n\nProposed times (select one):\n☐ Option A: 4:00 PM today\n☐ Option B: 5:00 PM today\n☐ Option C: Tomorrow 3:30 PM\n\nNotes: Organizer delayed due to flight UA412. Original time (3:30 PM) is no longer feasible. Please respond by 3:15 PM.`;
+    } else {
+      box.innerText = `Hi team,\n\nMy SFO flight is running 90 minutes late — should land at 3:45 PM instead of 2:00 PM. I'll be tight for our 3:30 PM Project Kickoff.\n\nI've checked everyone's calendar and I've provisioned three options:\n\n  1. 4:00 PM today (recommended — everyone's free)\n  2. 5:00 PM today\n  3. Tomorrow at 3:30 PM (same room)\n\nPlease click one of the options in the updated calendar invite to confirm. If none of these work, I can dial in from the car once I'm out of the airport.\n\nSorry for the inconvenience — I know this is short notice.\n\n— [Your Name]`;
+    }
+  }
+
+  function rewriteTone(tone) {
+    const box = document.getElementById('msgBox');
+    if (tone === 'formal') {
+      box.innerText = `Dear team,\n\nI am writing to inform you that my flight (UA412, SFO) has been delayed by approximately 90 minutes. My revised ETA is 3:45 PM, which makes attendance at the 3:30 PM Project Kickoff meeting infeasible.\n\nI have reviewed attendee availability and propose the following alternatives:\n\n  1. 4:00 PM today\n  2. 5:00 PM today\n  3. Tomorrow at 3:30 PM\n\nPlease indicate your preference via the updated calendar invitation. I apologize for any inconvenience this may cause.\n\nBest regards,\n[Your Name]`;
+    } else if (tone === 'casual') {
+      box.innerText = `Hey everyone,\n\nQuick heads up — my flight's delayed 90 mins so I'm going to miss our 3:30 kickoff 😬\n\nCan we shift to one of these?\n→ 4pm today (best option, we're all free)\n→ 5pm today\n→ Tomorrow 3:30pm\n\nHit me back or click the updated invite. Can also jump on from the car if needed!\n\nSorry for the last-minute chaos 🙏`;
+    } else {
+      box.innerText = `Hi team — flight delay, 90 mins late. Missing 3:30 PM kickoff.\n\nThree options:\n1. 4:00 PM today ← recommended\n2. 5:00 PM today\n3. Tomorrow 3:30 PM\n\nConfirm via updated invite. Can dial in from car if needed.\n\n— [Your Name]`;
+    }
+  }
+
+  function startTimer() {
+    if (timerInterval) return;
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        forceFallback();
+        return;
+      }
+      const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+      const s = (timerSeconds % 60).toString().padStart(2, '0');
+      const el = document.getElementById('timerDisplay');
+      if (el) el.textContent = m + ':' + s;
+    }, 1000);
+  }
+
+  function simulateResponses() {
+    const responses = [
+      { id: 'resp1', name: 'Alex Rivera', delay: 800, status: 'confirmed', text: '✓ Confirmed 4pm' },
+      { id: 'resp2', name: 'Jordan Lee', delay: 2200, status: 'confirmed', text: '✓ Confirmed 4pm' },
+      { id: 'resp3', name: 'Morgan Patel', delay: 3800, status: 'declined', text: '✗ Declined (5pm works)' }
+    ];
+    responses.forEach(r => {
+      setTimeout(() => {
+        const el = document.getElementById(r.id);
+        if (el) {
+          el.textContent = r.text;
+          el.className = 'resp-status ' + (r.status === 'confirmed' ? 'resp-confirmed' : 'resp-declined');
+        }
+        // Show banner after enough confirmations
+        const confirmed = document.querySelectorAll('.resp-confirmed').length;
+        if (confirmed >= 2) {
+          setTimeout(() => {
+            document.getElementById('confirmedBanner').style.display = 'flex';
+            clearInterval(timerInterval);
+            const s4 = document.getElementById('s4status');
+            if (s4) { s4.textContent = 'Done'; s4.className = 'step-status status-done'; }
+          }, 500);
+        }
+      }, r.delay);
+    });
+  }
+
+  function forceFallback() {
+    clearInterval(timerInterval);
+    ['resp1','resp2','resp3'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.classList.contains('resp-pending')) {
+        el.textContent = '— Auto-rescheduled';
+        el.className = 'resp-status' ;
+        el.style.background = '#EDE9E0';
+        el.style.color = '#8C8478';
+      }
+    });
+    document.getElementById('confirmedBanner').style.display = 'flex';
+    document.getElementById('confirmedBanner').querySelector('p').textContent =
+      'No quorum reached in 30 min. Optimistically rescheduled to 4:00 PM. Confirmation sent with escape hatch: "Let me know if that doesn\'t work."';
+    const s4 = document.getElementById('s4status');
+    if (s4) { s4.textContent = 'Done'; s4.className = 'step-status status-done'; }
+    const el = document.getElementById('step4');
+    if (el) { el.classList.remove('active'); el.classList.add('done'); }
+  }
+</script>
+</body>
+</html>
