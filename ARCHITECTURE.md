@@ -80,3 +80,22 @@ graph TD
 - **LLM Integration**: LiteLLM (via ADK extensions).
 - **Tool Protocol**: FastMCP (Model Context Protocol).
 - **Environment**: Python 3.13+, `uv` for package management.
+
+##
+run the orchestration agent
+
+(gullivertravels) (base) sangeetha@Sangeethas-MacBook-Pro GulliverTravels % uv run python -m backend.src.travelagent.testorchestrationagent
+
+##
+View the data in the orchestration agent
+
+(base) sangeetha@Sangeethas-MacBook-Pro GulliverTravels % source .venv/bin/activate
+(gullivertravels) (base) sangeetha@Sangeethas-MacBook-Pro GulliverTravels % sqlite3 orchestrator_state.db
+SQLite version 3.43.2 2023-10-10 13:08:14
+Enter ".help" for usage hints.
+sqlite> .tables
+adk_internal_metadata  events                 user_states          
+app_states             sessions             
+sqlite> SELECT * FROM app_states;
+AmbientTravelOrchestrator|{}|2026-05-18 20:13:59
+sqlite> 

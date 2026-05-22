@@ -208,6 +208,7 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date):
     # 2. Build the Endpoint URL
     # The structure is: https://flightapi.io
     url = f"https://api.flightapi.io/airline/{API_KEY}?num={flight_number}&name={airline_code}&date={input_date}"
+
     formatted_results = []
     try:
         # 3. Make the Request
@@ -244,8 +245,10 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date):
         
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred: {http_err}")
+        formatted_results = [f"HTTP error occurred: {http_err}"]
     except Exception as err:
         print(f"An error occurred: {err}")
+        formatted_results = [f"An error occurred: {err}"]
 
     return("\n".join(formatted_results))
 

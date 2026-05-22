@@ -17,4 +17,10 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "serpapi>=1.0.2",
     "uvicorn>=0.45.0",
+    "greenlet>=3.4.0",
+    "dspy>=3.2.1",
+    "pytest>=9.0.3",
 ]
+
+[tool.pyright]
+extraPaths = ["backend/src/travelagent", "backend/src"]

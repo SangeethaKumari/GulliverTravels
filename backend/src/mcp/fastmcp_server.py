@@ -14,7 +14,7 @@ Apart from the addition and serper_search tools that are defined within this fil
 """
 
 from fastmcp import FastMCP
-from tools.tools import add,fetch_fights_info,fetch_serper_news,flight_status_realtime
+from backend.src.mcp.tools.tools import add, fetch_fights_info, fetch_serper_news, flight_status_realtime
 mcp = FastMCP(name="Gulliver_Test Agent")
 
 
@@ -62,6 +62,29 @@ def flight_status(airline_code:str,flight_number:str,input_date) -> str:
 #####################################################################
 #   Author ----------------------------SR                          #
 #####################################################################
+
+
+
+
+
+#####################################################################
+#   Author ----------------MOCK------------Sangeetha                          #
+#####################################################################
+def get_weather(lat: float, lon: float) -> dict:
+    """Mock tool for destination weather tracking."""
+    print(f"[Tool Call] Fetching weather for coordinates: {lat}, {lon}")
+    return {"condition": "Rainy", "visibility_miles": 3}
+
+def estimate_route(origin: str, destination: str) -> dict:
+    """Mock tool for live transit time mapping."""
+    print(f"[Tool Call] Calculating route from {origin} to {destination}")
+    return {"traffic_status": "Heavy", "baseline_drive_minutes": 45}
+
+def get_calendar(meeting_id: str) -> dict:
+    """Mock tool for checking meeting priority constraints."""
+    print(f"[Tool Call] Accessing calendar registry for ID: {meeting_id}")
+    return {"meeting_title": "Executive Board Sync", "is_flexible": False}
+
 
 
 if __name__ == "__main__":

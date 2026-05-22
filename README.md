@@ -103,3 +103,38 @@ curl -X POST http://localhost:8000/tools/add \
 - To change the agent's behavior or model configuration (LiteLLM vs Gemini), edit `backend/src/travelagent/agent.py`.
 - To add new tools, edit `backend/src/travelagent/server.py`.
 - Session history is managed in-memory via `InMemoryRunner` in `main.py`.
+
+
+## 🧪 Agent Evaluation Matrix & CI/CD Pipeline
+
+This project uses an automated, data-driven testing framework to validate the state-machine logic, string parsing, and decision-making capabilities of the `AmbientOrchestratorAgent`. 
+
+Instead of relying on unstable live API connections, we evaluate the agent's behavior against a localized **Golden Dataset** that simulates real-world flight timelines.
+
+---
+
+### 📅 When Does the Evaluation File Run?
+
+The evaluation suite runs under two distinct conditions:
+
+#### 1. Automatically in the Cloud (CI/CD Guardrails)
+Every time a developer interacts with the central repository, the GitHub Actions automation runner wakes up. The file `.github/workflows/agent-eval.yml` triggers the evaluation matrix automatically on:
+* **Any `push` event** to the `main` or `develop` branches.
+* **Any `pull_request` event** targeting the `main` branch.
+
+If any code modification accidentally breaks a database transaction, messes up datetime delta calculations, or blocks a decision ledger event, **the pipeline halts immediately**, prevents the code from merging, uploads the corrupted `.db` log file for debugging, and dispatches a high-priority alert to the team's Slack channel.
+
+#### 2. Manually on Your Local Machine
+Developers should run the evaluation suite locally *before* pushing code to remote branches to catch breaking regressions early.
+
+---
+
+### 💻 How to Run the Evaluation Locally
+
+Make sure you are in the project root directory and your python virtual environment is activated, then use the following commands:
+
+#### Run the Standard Evaluation Matrix
+To execute the baseline verification assertions across all mock scenarios:
+```bash
+
+uv run pytest backend/src/tests/test_eval_matrix.py 
