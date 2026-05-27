@@ -13,6 +13,7 @@ Apart from the addition and serper_search tools that are defined within this fil
 - serper_search: Fetch news articles from Serper API for a given query/topic. (from serper_tool.py)
 """
 
+from datetime import date
 from fastmcp import FastMCP
 from backend.src.mcp.tools.tools import add, fetch_fights_info, fetch_serper_news, flight_status_realtime
 mcp = FastMCP(name="Gulliver_Test Agent")
@@ -45,7 +46,7 @@ def flight_search(departure_airport: str,arrival_airport:str,outbound_date,retur
     return fetch_fights_info(departure_airport,arrival_airport,outbound_date,return_date)
 
 @mcp.tool
-def flight_status(airline_code:str,flight_number:str,input_date) -> str:
+def flight_status(airline_code:str,flight_number:str,input_date:date) -> str:
     """
     Fetch Flight Status real time 
     """
