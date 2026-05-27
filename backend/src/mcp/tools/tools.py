@@ -203,6 +203,8 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date):
     if datetime.strptime(input_date, "%Y%m%d").date() < date.today():
         raise ValueError(f"Date cannot be in the past: {input_date}")
 
+    print("Inside the flight status real time function")
+
     # Get API key
     API_KEY=os.getenv("FLIGHT_API_KEY")
     # 2. Build the Endpoint URL
