@@ -23,7 +23,7 @@ class AmbientOrchestratorAgent:
     applies risk adjustments, and commits state transitions directly to a SQL
     database.
     """
-
+#optional input parameters, we can also use default values
     def __init__(self, flight_number: str, meeting_id: str, flight_airlinecode:str, flight_date:str):
         self.agent_name = "AmbientTravelOrchestrator"
         self.flight_number = flight_number
@@ -120,6 +120,8 @@ class AmbientOrchestratorAgent:
 
         while True:
             # Refresh session details safely from database
+           
+            # Should we maintain a new session every time ???
             session = await self._get_or_init_session()
 
             try:
@@ -189,9 +191,13 @@ class AmbientOrchestratorAgent:
 
         # 1. PERCEIVE: Query current flight metrics from your MCP tool pipeline
         #def flight_status_realtime(airline_code:str,flight_number:str,input_date):
+        
+        
+        # # 1. Define a specialized Flight agent to act as the "tool"
+        
 
         flight_info = flight_status(self.flight_airlinecode,self.flight_number,self.flight_date)
-        # Default value if we can't extract it
+        # Default value if we can't extract itx
         current_status = "on_time"
         #As of now the  tool is returning a string, later we will use the 
         # Pydantic response from the tool    

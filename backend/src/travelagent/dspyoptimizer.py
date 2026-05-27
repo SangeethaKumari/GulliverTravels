@@ -16,8 +16,9 @@ import os
 
 # Base model for reasoning
 MODEL_NAME = os.getenv("DSPY_MODEL", "openai/openai/gpt-oss-20b")
-API_BASE = os.getenv("DSPY_API_BASE", "http://10.0.10.51:8123/v1")
+API_BASE = os.getenv("DSPY_API_BASE", "http://10.0.10.51:8124/v1")
 API_KEY = os.getenv("DSPY_API_KEY", "sv-openai-api-key")
+
 
 
 lm=dspy.LM(
@@ -66,12 +67,21 @@ class NotificationComposer(dspy.Module):
         # We use Predict or ChainOfThought. ChainOfThought aligns with your specification.
         self.composer = dspy.ChainOfThought(NotificationSignature)
 
-    def forward(self, scenario: dict):
-        # Format the dictionary into a string representation for the signature
-        formatted_input = format_scenario(scenario)
+    def forward(self, delay_scenario=None, scenario=None):
+        # Support both 'delay_scenario' (from DSPy compiler/trainset) and 'scenario' (from manual calls)
+        input_scenario = delay_scenario if delay_scenario is not None else scenario
+        if input_scenario is None:
+            raise ValueError("Either 'delay_scenario' or 'scenario' must be provided.")
+
+        # Format the dictionary into a string representation for the signature if it is a dict
+        if isinstance(input_scenario, dict):
+            formatted_input = format_scenario(input_scenario)
+        else:
+            formatted_input = input_scenario
+
         # Pass the formatted string into the inner DSPy component
         result = self.composer(delay_scenario=formatted_input)
-        return result.notification
+        return result
 
 # -------------------------------------------------------------------------
 # 5. Define the Optimization Metric (Reward Function)
@@ -235,7 +245,7 @@ if __name__ == "__main__":
     print("--- 1. Testing Unoptimized Module ---")
     composer = NotificationComposer()
     unoptimized_message = composer.forward(sample_scenario)
-    print(unoptimized_message)
+    print(unoptimized_message.notification)
     print("\n" + "="*50 + "\n")
 
     print("--- 2. Optimizing Module with BootstrapFewShot ---")
@@ -249,7 +259,7 @@ if __name__ == "__main__":
 
     print("--- 3. Testing Optimized Module ---")
     optimized_message = optimized_composer.forward(sample_scenario)
-    print(optimized_message)
+    print(optimized_message.notification)
 
     # Viewing the Final Optimized Prompt (for review purposes)
     print("\n--- VIEWING THE UNDERLYING OPTIMIZED PROMPT ---")

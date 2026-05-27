@@ -97,6 +97,24 @@ async def simulate_cascading_delay():
             await agent._execute_sensing_cycle(session)
 
 
+async def run_live_test():
+    print(f"\n=======================================================")
+    print(f"🚀 RUNNING LIVE SCENARIO")
+    print(f"=======================================================")
+    
+    agent = AmbientOrchestratorAgent(
+        flight_number="2426",
+        meeting_id="meet_live_test",
+        flight_airlinecode="AA",
+        flight_date="20260629" 
+    )
+    
+    # Fetch the session (loads previous history from SQLite)
+    session = await agent._get_or_init_session()
+    
+    # Execute the sensing cycle with LIVE API call
+    await agent._execute_sensing_cycle(session)
+
 # --- 3. MAIN INTERFACE TRIGGER ---
 def main():
     # CHOOSE YOUR TEST METHOD:
@@ -108,7 +126,10 @@ def main():
     #for status, mock_data in MOCK_SCENARIOS.items():
         #asyncio.run(execute_single_test_run(status, mock_data))
     # Option C: Run the CASCADING delay simulation
-    asyncio.run(simulate_cascading_delay())
+    #asyncio.run(simulate_cascading_delay())
+    
+    # Option D: Run the LIVE API integration without Mocks
+    asyncio.run(run_live_test())
 
 if __name__ == "__main__":
     main()
