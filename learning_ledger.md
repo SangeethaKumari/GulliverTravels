@@ -94,6 +94,15 @@ This ledger compiles the technical, structural, and conceptual issues identified
 * **Discussion/Root Cause:** The workspace root did not have specific rules ignoring SQLite extensions (`.db`, `.db-journal`) or generated developer cache directories.
 * **Resolution/Correction:** Configured `.gitignore` to explicitly ignore persistent SQLite state files (`orchestrator_state.db`) and local environment overrides, keeping the repository history clean.
 
+### 📁 Issue 14: Secret Key Push Protection Block on Google OAuth Client Secrets
+* **Symptom:** Git push to GitHub was rejected with the error: `GH013: Repository rule violations found ... Push cannot contain secrets (Google OAuth Client ID & Secret)`.
+* **Discussion/Root Cause:** The active Google client secrets JSON file (`backend/src/travelagent/tools/client_secret_*.apps.googleusercontent.com.json`) was staged and committed. Even though a generic pattern existed in `.gitignore`, the file had already been cached in the Git index before the ignore rule was applied.
+* **Resolution/Correction:** 
+  1. Undid the commit using a soft reset (`git reset --soft HEAD~1`).
+  2. Unstaged the secret key file and local SQLite state files using `git restore --staged`.
+  3. Updated `.gitignore` to use explicit recursive directory wildcards (e.g. `**/client_secret_*.json`, `**/credentials.json`, `**/token.pickle`) to prevent future recursive leaks.
+  4. Created a clean commit and pushed to GitHub successfully.
+
 ---
 
 ## 6. Key Conceptual Learnings
