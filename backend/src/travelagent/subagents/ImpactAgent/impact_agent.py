@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from backend.src.travelagent.companion.signals.signals import ImpactSignal
+from backend.src.travelagent.companion.signals import ImpactSignal
 
 
 @dataclass
