@@ -1,0 +1,77 @@
+{
+  "composer.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "delay_scenario": "{\n  \"delay_duration\": 45,\n  \"meeting_weight\": \"medium\",\n  \"attendees\": [\n    \"Engineering Team\"\n  ],\n  \"weather\": \"clear\",\n  \"current_time\": \"10:00 AM\",\n  \"proposed_times\": [\n    \"10:45 AM\",\n    \"11:00 AM\"\n  ]\n}",
+        "reasoning": "Given a 45‑minute travel delay and a medium‑priority meeting, the message should acknowledge the setback, offer two concise reschedule options, and maintain a professional but approachable tone suitable for an engineering team. The notification stays below 120 words, keeps the message clear, and explicitly invites feedback on the preferred new time.",
+        "notification": "Hi team, my flight was delayed by 45 minutes due to technical issues, so I will be unable to join our 10:00 AM sync. I’ll be available to connect via Zoom at 10:45 AM, or we can push the meeting to 11:00 AM if that better suits everyone. I appreciate your flexibility and look forward to catching up soon. Let me know which time works best. Thanks."
+      },
+      {
+        "augmented": true,
+        "delay_scenario": "{\n  \"delay_duration\": 120,\n  \"meeting_weight\": \"high\",\n  \"attendees\": [\n    \"Board Members\",\n    \"Chairman\"\n  ],\n  \"weather\": \"snow\",\n  \"current_time\": \"9:00 AM\",\n  \"proposed_times\": [\n    \"11:30 AM\",\n    \"2:00 PM\"\n  ]\n}",
+        "reasoning": "- 2‑hour travel delay during snowy conditions prevents arrival for the 9:00 AM board meeting.  \n- Meeting weight is “high” and attendees are Board Members and the Chairman, necessitating a formal, concise, and solution‑oriented communication.  \n- Provide updated arrival expectation, acknowledge the inconvenience, and present the earliest workable times.  \n- Keep the language professional and respectful, with clear alternatives.",
+        "notification": "Good morning Board Members and Chairman,\n\nDue to severe snow, I am delayed by approximately two hours and will not arrive in time for our 9:00 AM session. I sincerely apologize for any inconvenience. We can reconvene at the earliest at 11:30 AM, or if that conflicts with your schedules, at 2:00 PM tomorrow, or I can join remotely. Please let me know which option best suits your availability. Thank you for your understanding."
+      },
+      {
+        "delay_scenario": "{\n  \"delay_duration\": 50,\n  \"meeting_weight\": \"high\",\n  \"attendees\": [\n    \"SaaS Vendor Account Executive\",\n    \"Legal Counsel\"\n  ],\n  \"weather\": \"stormy\",\n  \"current_time\": \"4:00 PM\",\n  \"proposed_times\": [\n    \"4:50 PM\",\n    \"tomorrow 9:30 AM\"\n  ]\n}",
+        "notification": "Hello everyone, my train has been halted due to storm damage on the tracks, creating a 50-minute delay. I will be unable to make our 4:00 PM contract review. I can join via phone at 4:50 PM, or we can move the session to 9:30 AM tomorrow morning."
+      },
+      {
+        "delay_scenario": "{\n  \"delay_duration\": 25,\n  \"meeting_weight\": \"low\",\n  \"attendees\": [\n    \"Senior Backend Engineer (Direct Report)\"\n  ],\n  \"weather\": \"fog\",\n  \"current_time\": \"11:00 AM\",\n  \"proposed_times\": [\n    \"11:30 AM\",\n    \"2:30 PM\"\n  ]\n}",
+        "notification": "Hey, I'm stuck behind a minor accident on the bridge due to heavy fog and am tracking 25 minutes late. Let's push our 1:1 back to 11:30 AM, or we can grab a spot at 2:30 PM if your afternoon is clear."
+      },
+      {
+        "delay_scenario": "{\n  \"delay_duration\": 20,\n  \"meeting_weight\": \"high\",\n  \"attendees\": [\n    \"Staff Engineer Candidate\",\n    \"Recruiting Coordinator\"\n  ],\n  \"weather\": \"clear\",\n  \"current_time\": \"11:00 AM\",\n  \"proposed_times\": [\n    \"11:20 AM\",\n    \"1:00 PM\"\n  ]\n}",
+        "notification": "Hi all, my previous panel interview is running long, so I will be roughly 20 minutes late to our technical deep dive. I want to ensure we get full time together—can we adjust to 11:20 AM, or shift to 1:00 PM this afternoon?"
+      },
+      {
+        "delay_scenario": "{\n  \"delay_duration\": 60,\n  \"meeting_weight\": \"critical\",\n  \"attendees\": [\n    \"VP of Infrastructure\",\n    \"SRE Lead\",\n    \"On-Call Team\"\n  ],\n  \"weather\": \"clear\",\n  \"current_time\": \"6:00 PM\",\n  \"proposed_times\": [\n    \"7:00 PM\",\n    \"Immediately via Mobile\"\n  ]\n}",
+        "notification": "Team, I'm currently stuck at airport security with a 60-minute delay and cannot get to my laptop. Given the critical nature of this incident, I can dial in right now via mobile from the security line, or we can convene a full war room triage at 7:00 PM once I am at the gate."
+      },
+      {
+        "delay_scenario": "{\n  \"delay_duration\": 40,\n  \"meeting_weight\": \"medium\",\n  \"attendees\": [\n    \"APAC Regional Director\",\n    \"Head of Operations\"\n  ],\n  \"weather\": \"clear\",\n  \"current_time\": \"8:00 PM\",\n  \"proposed_times\": [\n    \"8:40 PM\",\n    \"tomorrow 8:00 AM\"\n  ]\n}",
+        "notification": "Good evening, my connecting flight was delayed on the tarmac, pushing my arrival back by 40 minutes. I will miss our scheduled 8:00 PM sync. I can hop online at 8:40 PM from the rideshare, or we can reschedule for tomorrow morning at 8:00 AM if that is more convenient."
+      },
+      {
+        "delay_scenario": "{\n  \"delay_duration\": 10,\n  \"meeting_weight\": \"medium\",\n  \"attendees\": [\n    \"Product Org All-Hands\"\n  ],\n  \"weather\": \"cloudy\",\n  \"current_time\": \"12:55 PM\",\n  \"proposed_times\": [\n    \"1:10 PM\"\n  ]\n}",
+        "notification": "Hi Product Team, we are experiencing a minor technical hitch with our conference room audio pipeline. We will be delaying the start of the All-Hands by 10 minutes, kicking off at 1:10 PM instead. Grab a coffee and see you shortly."
+      },
+      {
+        "delay_scenario": "{\n  \"delay_duration\": 30,\n  \"meeting_weight\": \"high\",\n  \"attendees\": [\n    \"Acme Corp Stakeholders\",\n    \"Account Director\"\n  ],\n  \"weather\": \"heavy rain\",\n  \"current_time\": \"1:30 PM\",\n  \"proposed_times\": [\n    \"2:00 PM\",\n    \"tomorrow 10:00 AM\"\n  ]\n}",
+        "notification": "Hi everyone, I am currently caught in heavy traffic due to torrential rain and am running 30 minutes late for our review. I sincerely apologize for the delay. Could we adjust today's kickoff to 2:00 PM, or would tomorrow at 10:00 AM suit your team better?"
+      },
+      {
+        "delay_scenario": "{\n  \"delay_duration\": 15,\n  \"meeting_weight\": \"low\",\n  \"attendees\": [\n    \"Design Intern\",\n    \"Product Copywriter\"\n  ],\n  \"weather\": \"clear\",\n  \"current_time\": \"3:00 PM\",\n  \"proposed_times\": [\n    \"3:15 PM\",\n    \"4:00 PM\"\n  ]\n}",
+        "notification": "Hey guys, running about 15 minutes behind schedule getting back to my desk. Let's push our sync to 3:15 PM, or if 4:00 PM works better for your schedules, let me know!"
+      }
+    ],
+    "signature": {
+      "instructions": "Generate a high-quality, professional, and context-aware notification message \nfor meeting attendees based on a travel delay scenario. \nThe tone should adapt to the 'meeting_weight' and 'attendees' (e.g., more formal for executives).\nInclude essential details like updated expectations and alternative options clearly and concisely.",
+      "fields": [
+        {
+          "prefix": "Delay Scenario:",
+          "description": "JSON-like string containing delay duration, meeting weight, attendees, weather, current time, and proposed alternative times."
+        },
+        {
+          "prefix": "Reasoning:",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Notification:",
+          "description": "A polished, empathetic, and professional notification message under 120 words."
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.13",
+      "dspy": "3.2.1",
+      "cloudpickle": "3.1"
+    }
+  }
+}

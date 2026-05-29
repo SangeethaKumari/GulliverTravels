@@ -53,3 +53,21 @@ frontend/dist/
 .idea/
 *.swp
 *.swo
+
+credentials.json
+token.pickle
+
+client_secret_*.apps.googleusercontent.com.json
+
+secrets.json
+
+# SQLite databases
+*.db
+*.db-journal
+orchestrator_state.db
+backend/src/travelagent/orchestrator_state.db
+
+# Recursive Google Auth files
+**/credentials.json
+**/token.pickle
+**/client_secret_*.json

@@ -20,6 +20,9 @@ dependencies = [
     "greenlet>=3.4.0",
     "dspy>=3.2.1",
     "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
+    "google-auth-oauthlib>=1.4.0",
+    "google-generativeai>=0.8.6",
 ]
 
 [tool.pyright]

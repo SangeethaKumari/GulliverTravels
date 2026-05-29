@@ -47,11 +47,19 @@ async def execute_single_test_run(scenario_name: str, mock_string_data: str):
         flight_date="20260629"
     )
     
-    # We patch the specific flight_status import inside the orchestrationagent context
-    target_patch = 'backend.src.travelagent.orchestrationagent.flight_status'
-    with patch(target_patch) as mock_flight_tool:
-        # Force the tool to return this specific scenario's string layout
-        mock_flight_tool.return_value = mock_string_data
+    # We patch the specific BaseAgent.run_async method
+    target_patch = 'google.adk.agents.base_agent.BaseAgent.run_async'
+    async def mock_run_async(*args, **kwargs):
+        from google.adk.events import Event
+        from google.genai import types
+        yield Event(
+            author="model",
+            content=types.Content(
+                role="model",
+                parts=[types.Part(text=mock_string_data)]
+            )
+        )
+    with patch(target_patch, new=mock_run_async):
         
         # Initialize the session and execute exactly ONE sensing cycle
         session = await agent._get_or_init_session()
@@ -81,15 +89,27 @@ async def simulate_cascading_delay():
         flight_date="20260629"
     )
     
-    target_patch = 'backend.src.travelagent.orchestrationagent.flight_status'
-    
     # Run through the timeline sequence step-by-step
     for cycle_name, mock_string_data in MOCK_TIMELINE.items():
         print(f"\n🔄 Executing: {cycle_name}")
         
-        with patch(target_patch) as mock_flight_tool:
-            mock_flight_tool.return_value = mock_string_data
-            
+        target_patch = 'google.adk.agents.base_agent.BaseAgent.run_async'
+        
+        # We need a closure to capture mock_string_data correctly inside mock_run_async
+        def make_mock(data):
+            async def mock_run_async(*args, **kwargs):
+                from google.adk.events import Event
+                from google.genai import types
+                yield Event(
+                    author="model",
+                    content=types.Content(
+                        role="model",
+                        parts=[types.Part(text=data)]
+                    )
+                )
+            return mock_run_async
+
+        with patch(target_patch, new=make_mock(mock_string_data)):
             # Fetch the session (loads previous history from SQLite)
             session = await agent._get_or_init_session()
             

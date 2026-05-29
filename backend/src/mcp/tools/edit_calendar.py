@@ -7,19 +7,25 @@ Usage (standalone):
 
 import datetime
 from zoneinfo import ZoneInfo
-from config import get_service, TIMEZONE
+try:
+    from backend.src.mcp.tools.config import get_service, TIMEZONE
+except ImportError:
+    try:
+        from .config import get_service, TIMEZONE
+    except ImportError:
+        from config import get_service, TIMEZONE
 
 
 # ── Core function ─────────────────────────────────────────────────────────────
 def edit_event(
     service,
     event_id: str,
-    title: str       = None,
-    date: str        = None,
-    start_time: str  = None,
-    end_time: str    = None,
-    description: str = None,
-    location: str    = None,
+    title: str | None       = None,
+    date: str | None        = None,
+    start_time: str | None  = None,
+    end_time: str | None    = None,
+    description: str | None = None,
+    location: str | None    = None,
 ) -> dict:
     """
     Update one or more fields of an existing calendar event.
@@ -52,8 +58,8 @@ def edit_event(
 
     # ── Apply date/time changes ───────────────────────────────────────────────
     if date or start_time or end_time:
-        existing_start = datetime.datetime.fromisoformat(event["start"]["dateTime"])
-        existing_end   = datetime.datetime.fromisoformat(event["end"]["dateTime"])
+        existing_start = datetime.datetime.fromisoformat(event["start"]["dateTime"]).astimezone(tz)
+        existing_end   = datetime.datetime.fromisoformat(event["end"]["dateTime"]).astimezone(tz)
 
         use_date  = date       or existing_start.strftime("%Y-%m-%d")
         use_start = start_time or existing_start.strftime("%H:%M")
@@ -71,7 +77,7 @@ def edit_event(
 
     updated = (
         service.events()
-        .update(calendarId="primary", eventId=event_id, body=event)
+        .update(calendarId="primary", eventId=event_id, body=event, sendUpdates="all")
         .execute()
     )
 

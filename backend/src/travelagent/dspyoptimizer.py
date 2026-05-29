@@ -14,28 +14,30 @@ import os
 
 
 
+import dotenv
+dotenv.load_dotenv()
+
 # Base model for reasoning
-MODEL_NAME = os.getenv("DSPY_MODEL", "openai/openai/gpt-oss-20b")
-API_BASE = os.getenv("DSPY_API_BASE", "http://10.0.10.51:8124/v1")
-API_KEY = os.getenv("DSPY_API_KEY", "sv-openai-api-key")
+MODEL_NAME = os.getenv("DSPY_MODEL", "gemini/gemini-2.5-flash")
+API_KEY = os.getenv("DSPY_API_KEY", os.getenv("GOOGLE_API_KEY", "sv-openai-api-key"))
 
-
-
-lm=dspy.LM(
-    "openai/openai/gpt-oss-20b",
-    api_base="http://10.0.10.51:8124/v1",
-    api_key="sv-openai-api-key",
-)
+if MODEL_NAME.startswith("gemini"):
+    lm = dspy.LM(MODEL_NAME, api_key=API_KEY)
+    reflection_lm = lm
+else:
+    API_BASE = os.getenv("DSPY_API_BASE", "http://10.0.10.51:8124/v1")
+    lm = dspy.LM(
+        MODEL_NAME,
+        api_base=API_BASE,
+        api_key=API_KEY,
+    )
+    reflection_lm = dspy.LM(
+        MODEL_NAME,
+        api_base=API_BASE,
+        api_key=API_KEY,
+    )
 
 dspy.configure(lm=lm)
-
-# Stronger / more exploratory LM for reflection
-reflection_lm = dspy.LM(
-    # 'openai/gpt-4o-mini'
-    "openai/openai/gpt-oss-20b",
-    api_base="http://10.0.10.51:8124/v1",
-    api_key="sv-openai-api-key",
-)
 
 
 # -------------------------------------------------------------------------
@@ -256,6 +258,10 @@ if __name__ == "__main__":
     optimized_composer = teleprompter.compile(NotificationComposer(), trainset=trainset)
     print("Optimization Complete!")
     print("\n" + "="*50 + "\n")
+
+    # Save the optimized program to JSON
+    optimized_composer.save("backend/src/travelagent/optimized_notification_composer.json")
+    print("Saved to optimized_notification_composer.json")
 
     print("--- 3. Testing Optimized Module ---")
     optimized_message = optimized_composer.forward(sample_scenario)

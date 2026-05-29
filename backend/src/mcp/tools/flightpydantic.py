@@ -1,6 +1,6 @@
 import datetime
 from pydantic import BaseModel
-from datetime import date
+from datetime import datetime
 
 ####################################################
 #                 flight_status_realtime           #
@@ -8,11 +8,11 @@ from datetime import date
 
 class FlightStatusRealtime(BaseModel):
     Departure_Airport:str
-    Departure_Time:date
+    Departure_Time:datetime
     Arrival_Airport:str
-    Arrival_Time:date
+    Arrival_Time:datetime
     airline_code:str
-    flight_nubmer:str
+    flight_number:str
     Status:str
 
 

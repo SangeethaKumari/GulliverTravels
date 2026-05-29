@@ -1,0 +1,929 @@
+s enabled.
+  check_feature_enabled()
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'flight_number': '123', 'input_date': '2026-06-29', 'airline_code': 'UA'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 17:45:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is on time. It is scheduled to depart at 12:00 and arrive at 17:45.
+
+📢 [SENSE] Flight Status: ON_TIME
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 17:45:00
+✅ [COMPUTE] Flight is on time. Remaining quiet.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #2/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:15:48] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'input_date': '2026-06-29', 'airline_code': 'UA', 'flight_number': '123'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 17:45:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is on time. It is scheduled to depart at 12:00:00 and arrive at 17:45:00.
+
+📢 [SENSE] Flight Status: ON_TIME
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 17:45:00
+✅ [COMPUTE] Flight is on time. Remaining quiet.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #3/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:16:05] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'flight_number': '123', 'airline_code': 'UA', 'input_date': '2026-06-29'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 17:45:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is on time. It is scheduled to depart at 12:00 and arrive at 17:45.
+
+📢 [SENSE] Flight Status: ON_TIME
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 17:45:00
+✅ [COMPUTE] Flight is on time. Remaining quiet.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #4/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:16:22] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'input_date': '2026-06-29', 'flight_number': '123', 'airline_code': 'UA'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 18:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: Flight UA123 from SFO to JFK on 2026-06-29 is delayed. The departure time is 12:00:00 and the arrival time is 18:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 18:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 18:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 18:15:00 - 17:45:00
+   • Resulting Difference : 0:30:00 (30 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : []
+   • Appending New Delay             : 30 min
+   • Updated History (saved to DB)   : [30]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+⚠️ [ACT] Soft heads-up threshold reached. Notifying user.
+
+*** DECISION LEDGER ***
+{
+  "decision": "soft_heads_up",
+  "delay_minutes": 30,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #5/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:16:40] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'airline_code': 'UA', 'input_date': '2026-06-29', 'flight_number': '123'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 18:45:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 18:45:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 18:45:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 18:45:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 18:45:00 - 17:45:00
+   • Resulting Difference : 1:00:00 (60 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30]
+   • Appending New Delay             : 60 min
+   • Updated History (saved to DB)   : [30, 60]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+⚠️ [ACT] Soft heads-up threshold reached. Notifying user.
+
+*** DECISION LEDGER ***
+{
+  "decision": "soft_heads_up",
+  "delay_minutes": 60,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #6/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:16:57] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'airline_code': 'UA', 'flight_number': '123', 'input_date': '2026-06-29'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 from SFO to JFK on 2026-06-29 is delayed. It was scheduled to depart at 12:00 and arrive at 19:15.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+[CalendarAgent] Subject: Delay Update: Meeting meeting_abcd
+
+Dear attendees,
+
+Please accept my apologies, but there's been a change to the schedule for meeting_abcd.
+
+Flight UA123 from SFO to JFK is delayed by 90 minutes. The new estimated arrival time is 2026-06-29 19:15:00.
+
+I'd like to propose rescheduling our meeting by 1 hour. Please let me know if this works for you.
+
+Thank you for your understanding.
+
+Sincerely,
+[Your Name]
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #7/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:17:16] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'flight_number': '123', 'input_date': '2026-06-29', 'airline_code': 'UA'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #8/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:17:33] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'input_date': '2026-06-29', 'flight_number': '123', 'airline_code': 'UA'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: Your flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #9/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:17:50] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'flight_number': '123', 'airline_code': 'UA', 'input_date': '2026-06-29'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #10/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:18:07] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'airline_code': 'UA', 'input_date': '2026-06-29', 'flight_number': '123'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00 and the arrival time is 19:15.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #11/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:18:24] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'airline_code': 'UA', 'input_date': '2026-06-29', 'flight_number': '123'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00 and the arrival time is 19:15.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #12/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:18:41] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'input_date': '2026-06-29', 'flight_number': '123', 'airline_code': 'UA'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #13/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:18:58] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'input_date': '2026-06-29', 'flight_number': '123', 'airline_code': 'UA'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #14/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:19:15] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'input_date': '2026-06-29', 'flight_number': '123', 'airline_code': 'UA'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: Your flight UA123 on 2026-06-29 from SFO to JFK is delayed. The scheduled departure time is 12:00:00 and the scheduled arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #15/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:19:32] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'airline_code': 'UA', 'flight_number': '123', 'input_date': '2026-06-29'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #16/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:19:50] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'airline_code': 'UA', 'flight_number': '123', 'input_date': '2026-06-29'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #17/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:20:07] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'input_date': '2026-06-29', 'flight_number': '123', 'airline_code': 'UA'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The scheduled departure time is 12:00 PM and the scheduled arrival time is 07:15 PM.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #18/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:20:27] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'input_date': '2026-06-29', 'airline_code': 'UA', 'flight_number': '123'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #19/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:20:44] Polling flight status (Interval: 15s)...
+[AmbientTravelOrchestrator] [DEBUG] Model tool call: flight_status args: {'airline_code': 'UA', 'flight_number': '123', 'input_date': '2026-06-29'}
+[DEBUG] dep_time: 2026-06-29 12:00:00, arr_time: 2026-06-29 19:15:00
+[AmbientTravelOrchestrator] [DEBUG] Model text part: The flight UA123 on 2026-06-29 from SFO to JFK is delayed. The departure time is 12:00:00 and the arrival time is 19:15:00.
+
+📢 [SENSE] Flight Status: DELAYED
+   • Airline           : UA | Flight: 123
+   • Route             : SFO ➔ JFK
+   • Departure Time    : 2026-06-29 12:00:00
+   • Scheduled Arrival : 2026-06-29 17:45:00
+   • Estimated Arrival : 2026-06-29 19:15:00
+⏱️ [CALCULATING DELAY]:
+   • Actual Arrival (Est) : 2026-06-29 19:15:00
+   • Scheduled Arrival    : 2026-06-29 17:45:00
+   • Subtract Equation    : 19:15:00 - 17:45:00
+   • Resulting Difference : 1:30:00 (90 minutes)
+📈 [HISTORY UPDATE]:
+   • Loaded Previous History from DB : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+   • Appending New Delay             : 90 min
+   • Updated History (saved to DB)   : [30, 60, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]
+[Tool Call] Fetching weather for coordinates: 40.7128, -74.006
+[Tool Call] Calculating route from airport to meeting_address
+[Tool Call] Accessing calendar registry for ID: meeting_abcd
+Could not retrieve live event details for meeting_abcd (credentials.json not found. Download OAuth credentials from Google Cloud Console.). Returning mock fallback.
+🧠 [THINK] Committee Decision-Making:
+   • On-time Probability (P) : 78%
+   • Risk Multiplier         : 1.25x
+   • Meeting Weight          : 0.85
+   • Adjusted Probability    : 73% (Reschedule Threshold: < 60%)
+🚨 [ACT] Critical threshold reached! Initiating negotiation.
+
+*** DECISION LEDGER ***
+{
+  "decision": "initiate_negotiation",
+  "delay_minutes": 90,
+  "adjusted_probability": 0.73,
+  "meeting_weight": 0.85,
+  "delay_multiplier": 1.25
+}
+
+   • Email notification already sent. Skipping dispatch.
+[AmbientTravelOrchestrator] Sleeping 15s ...
+
+
+── Poll #20/48 ────────────────────────────────────
+[AmbientTravelOrchestrator] [2026-05-28 18:21:02] Polling flight status (Interval: 15s)...
+^C
+[AmbientTravelOrchestrator] Loop ended — 
+Traceback (most recent call last):
+  File "/Users/sangeetha/.local/share/uv/python/cpython-3.13.7-macos-aarch64-none/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/Users/sangeetha/.local/share/uv/python/cpython-3.13.7-macos-aarch64-none/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/backend/src/travelagent/AmbientOrchestration.py", line 154, in _loop
+    should_stop, stop_reason = await self._sensing_cycle(session)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/backend/src/travelagent/AmbientOrchestration.py", line 179, in _sensing_cycle
+    flight_info, current_status, actual_arrival_str = await self._fetch_flight_status()
+                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/backend/src/travelagent/AmbientOrchestration.py", line 289, in _fetch_flight_status
+    async for event in runner.run_async(
+    ...<67 lines>...
+                        flight_info = None
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/runners.py", line 632, in run_async
+    async for event in agen:
+      yield event
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/runners.py", line 617, in _run_with_trace
+    async for event in agen:
+      yield event
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/runners.py", line 881, in _exec_with_plugin
+    async for event in agen:
+    ...<65 lines>...
+      yield output_event
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/runners.py", line 606, in execute
+    async for event in agen:
+      yield event
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/agents/base_agent.py", line 297, in run_async
+    async for event in agen:
+      yield event
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/agents/llm_agent.py", line 487, in _run_async_impl
+    async for event in agen:
+    ...<5 lines>...
+        should_pause = True
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 804, in run_async
+    async for event in agen:
+      last_event = event
+      yield event
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 881, in _run_one_step_async
+    async for llm_response in agen:
+    ...<13 lines>...
+          yield event
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1261, in _call_llm_async
+    async for event in agen:
+      yield event
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1239, in _call_llm_with_tracing
+    async for llm_response in agen:
+    ...<18 lines>...
+      yield llm_response
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 1322, in _run_and_handle_error
+    async for response in agen:
+      yield response
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/flows/llm_flows/base_llm_flow.py", line 379, in _run_and_handle_error
+    async for llm_response in agen:
+    ...<5 lines>...
+      yield llm_response
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/models/lite_llm.py", line 2431, in generate_content_async
+    response = await self.llm_client.acompletion(**completion_args)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/google/adk/models/lite_llm.py", line 500, in acompletion
+    return await acompletion(
+           ^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/litellm/utils.py", line 1889, in wrapper_async
+    result = await original_function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/litellm/main.py", line 620, in acompletion
+    response = await init_response
+               ^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/litellm/llms/vertex_ai/gemini/vertex_and_google_ai_studio_gemini.py", line 2766, in async_completion
+    response = await client.post(
+               ^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )  # type: ignore
+    ^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/litellm/litellm_core_utils/logging_utils.py", line 297, in async_wrapper
+    result = await func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/litellm/llms/custom_httpx/http_handler.py", line 468, in post
+    response = await self.client.send(req, stream=stream)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/litellm/llms/custom_httpx/aiohttp_transport.py", line 307, in handle_async_request
+    response = await self._make_aiohttp_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/litellm/llms/custom_httpx/aiohttp_transport.py", line 285, in _make_aiohttp_request
+    response = await client_session.request(**request_kwargs).__aenter__()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/aiohttp/client.py", line 1521, in __aenter__
+    self._resp: _RetType = await self._coro
+                           ^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/aiohttp/client.py", line 788, in _request
+    resp = await handler(req)
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/aiohttp/client.py", line 766, in _connect_and_send_request
+    await resp.start(conn)
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/aiohttp/client_reqrep.py", line 539, in start
+    message, payload = await protocol.read()  # type: ignore[union-attr]
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/.venv/lib/python3.13/site-packages/aiohttp/streams.py", line 707, in read
+    await self._waiter
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/backend/src/travelagent/AmbientOrchestration.py", line 450, in <module>
+    ).start()
+      ~~~~~^^
+  File "/Users/sangeetha/Supportvector2026/capstone/project/GulliverTravels/backend/src/travelagent/AmbientOrchestration.py", line 121, in start
+    asyncio.run(self._loop())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/sangeetha/.local/share/uv/python/cpython-3.13.7-macos-aarch64-none/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/Users/sangeetha/.local/share/uv/python/cpython-3.13.7-macos-aarch64-none/lib/python3.13/asyncio/runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+(gullivertravels) (base) sangeetha@Sangeethas-MacBook-Pro GulliverTravels % 

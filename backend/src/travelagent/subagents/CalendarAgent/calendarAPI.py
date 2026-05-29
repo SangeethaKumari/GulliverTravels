@@ -14,17 +14,18 @@ Endpoints:
     GET    /health
 """
 
+from backend.src.mcp.tools.list_calendar import list_events
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from config          import get_service
-from book_calendar   import book_event
-from edit_calendar   import edit_event
-from delete_calendar import delete_event
-from list_calendar   import list_events
-from check_conflicts import check_conflicts
-from calendar_agent  import CalendarAgent
+from backend.src.mcp.tools.config import get_service
+from backend.src.mcp.tools.book_calendar import book_event
+from backend.src.mcp.tools.edit_calendar import edit_event
+from backend.src.mcp.tools.delete_calendar import delete_event
+
+from backend.src.mcp.tools.check_conflicts import check_conflicts
+from backend.src.travelagent.subagents.CalendarAgent.calendar_agent import CalendarAgent
 
 import datetime
 
@@ -53,12 +54,12 @@ class BookRequest(BaseModel):
     location:    str  = ""
 
 class EditRequest(BaseModel):
-    title:       str  = None
-    date:        str  = None
-    start_time:  str  = None
-    end_time:    str  = None
-    description: str  = None
-    location:    str  = None
+    title:       str | None = None
+    date:        str | None = None
+    start_time:  str | None = None
+    end_time:    str | None = None
+    description: str | None = None
+    location:    str | None = None
 
 class ChatRequest(BaseModel):
     message: str
@@ -78,7 +79,7 @@ def api_list_events(
         days_ahead=days_ahead,
         max_results=max_results,
         search=search,
-    )
+   )
     return {"count": len(events), "events": events}
 
 

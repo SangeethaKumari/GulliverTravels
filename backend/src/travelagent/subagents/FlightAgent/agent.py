@@ -49,9 +49,10 @@ mcp_tool = get_mcp_tool()
 # --- Define the LLM Agent ---
 generic_agent = LlmAgent(
     name="Generic",
-    model=LiteLlm(model=MODEL),
+    model=LiteLlm(model="gemini/gemini-2.5-flash"),
     instruction="Respond to the user's request. Use the appropriate tools if necessary.",
     tools=[mcp_tool]
 )
+
 
 root_agent = generic_agent

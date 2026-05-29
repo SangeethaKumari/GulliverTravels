@@ -12,10 +12,30 @@ import google.generativeai as genai
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 SCOPES        = ["https://www.googleapis.com/auth/calendar"]
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "YOUR_GEMINI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "YOUR_GEMINI_API_KEY"
 TIMEZONE      = os.getenv("CALENDAR_TIMEZONE", "America/Los_Angeles")
-TOKEN_FILE    = "token.pickle"
-CREDS_FILE    = "credentials.json"
+# Resolve paths dynamically to find credentials.json wherever it exists in the workspace
+def find_credentials_file() -> str:
+    # Check current directory
+    if os.path.exists("credentials.json"):
+        return os.path.abspath("credentials.json")
+    
+    # Check relative to config.py location
+    mcp_tools_dir = os.path.dirname(os.path.abspath(__file__))
+    mcp_creds = os.path.join(mcp_tools_dir, "credentials.json")
+    if os.path.exists(mcp_creds):
+        return mcp_creds
+        
+    # Check relative to travelagent/tools location
+    travel_tools_dir = os.path.abspath(os.path.join(mcp_tools_dir, "..", "..", "travelagent", "tools"))
+    travel_creds = os.path.join(travel_tools_dir, "credentials.json")
+    if os.path.exists(travel_creds):
+        return travel_creds
+        
+    return os.path.abspath("credentials.json")
+
+CREDS_FILE    = find_credentials_file()
+TOKEN_FILE    = os.path.join(os.path.dirname(CREDS_FILE), "token.pickle")
 
 # Configure Gemini once at import time
 genai.configure(api_key=GEMINI_API_KEY)

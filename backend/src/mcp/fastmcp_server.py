@@ -13,9 +13,11 @@ Apart from the addition and serper_search tools that are defined within this fil
 - serper_search: Fetch news articles from Serper API for a given query/topic. (from serper_tool.py)
 """
 
-from datetime import date
+from datetime import date, datetime
 from fastmcp import FastMCP
 from backend.src.mcp.tools.tools import add, fetch_fights_info, fetch_serper_news, flight_status_realtime
+from backend.src.mcp.tools.config import get_service
+from backend.src.mcp.tools.delete_calendar import get_event_details
 mcp = FastMCP(name="Gulliver_Test Agent")
 
 
@@ -46,7 +48,7 @@ def flight_search(departure_airport: str,arrival_airport:str,outbound_date,retur
     return fetch_fights_info(departure_airport,arrival_airport,outbound_date,return_date)
 
 @mcp.tool
-def flight_status(airline_code:str,flight_number:str,input_date:date) -> str:
+def flight_status(airline_code:str,flight_number:str,input_date:datetime):
     """
     Fetch Flight Status real time 
     """
@@ -82,9 +84,24 @@ def estimate_route(origin: str, destination: str) -> dict:
     return {"traffic_status": "Heavy", "baseline_drive_minutes": 45}
 
 def get_calendar(meeting_id: str) -> dict:
-    """Mock tool for checking meeting priority constraints."""
+    """Mock tool for checking meeting priority constraints with real Google Calendar API fallback."""
     print(f"[Tool Call] Accessing calendar registry for ID: {meeting_id}")
-    return {"meeting_title": "Executive Board Sync", "is_flexible": False}
+    try:
+        service = get_service()
+        details = get_event_details(service, meeting_id)
+        is_flexible = "flexible" in details.get("title", "").lower()
+        print(f"Meeting details: {details}")
+      
+        return {
+            "meeting_title": details.get("title", "No Title"),
+            "is_flexible": is_flexible,
+            "start": details.get("start"),
+            "end": details.get("end"),
+            "attendees": details.get("attendees", [])
+        }
+    except Exception as e:
+        print(f"Could not retrieve live event details for {meeting_id} ({e}). Returning mock fallback.")
+        return {"meeting_title": "Executive Board Sync", "is_flexible": False}
 
 
 

@@ -4,8 +4,7 @@ delete_calendar.py — Delete (cancel) a Google Calendar event.
 Usage (standalone):
     python delete_calendar.py
 """
-
-from config import get_service
+from backend.src.mcp.tools.config import get_service
 
 
 # ── Core function ─────────────────────────────────────────────────────────────
@@ -44,6 +43,7 @@ def get_event_details(service, event_id: str) -> dict:
         dict with title, start, end, attendees
     """
     e = service.events().get(calendarId="primary", eventId=event_id).execute()
+
     return {
         "title":     e.get("summary", "No title"),
         "start":     e["start"].get("dateTime", e["start"].get("date")),
@@ -69,7 +69,8 @@ def main():
         print(f"  End   : {details['end']}")
         if details["attendees"]:
             print(f"  Guests: {', '.join(details['attendees'])}")
-    except Exception:
+    except Exception as e:
+        print("Exception occurred: ", e)
         print("⚠️  Could not fetch event details. Double-check the ID.")
         return
 

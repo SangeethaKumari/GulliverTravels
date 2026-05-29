@@ -9,7 +9,8 @@ Usage (standalone):
 
 import datetime
 from zoneinfo import ZoneInfo
-from config import get_service, TIMEZONE
+from backend.src.mcp.tools.config import get_service, TIMEZONE
+
 
 
 # ── Core function ─────────────────────────────────────────────────────────────
@@ -65,8 +66,8 @@ def check_conflicts(
         if "dateTime" not in e["start"]:
             continue
 
-        ev_start = datetime.datetime.fromisoformat(e["start"]["dateTime"])
-        ev_end   = datetime.datetime.fromisoformat(e["end"]["dateTime"])
+        ev_start = datetime.datetime.fromisoformat(e["start"]["dateTime"]).astimezone(tz)
+        ev_end   = datetime.datetime.fromisoformat(e["end"]["dateTime"]).astimezone(tz)
 
         if ev_start < new_end and ev_end > new_start:
             conflicts.append({

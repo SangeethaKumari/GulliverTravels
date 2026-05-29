@@ -10,10 +10,10 @@ Usage (standalone):
 
 import datetime
 from zoneinfo import ZoneInfo
-from config import get_service, TIMEZONE
-from check_conflicts import check_conflicts
 
+from backend.src.mcp.tools.config import get_service, TIMEZONE
 
+from backend.src.mcp.tools.check_conflicts import check_conflicts
 # ── Core function ─────────────────────────────────────────────────────────────
 def book_event(
     service,
@@ -98,6 +98,79 @@ def book_event(
         "end":      end_dt.strftime("%Y-%m-%d %H:%M"),
         "link":     event.get("htmlLink", ""),
     }
+from google.adk.agents import LlmAgent
+from google.adk.models import LiteLlm
+
+
+def check_calendar_conflicts(
+    date: str,
+    start_time: str,
+    end_time: str,
+) -> list[dict]:
+    """Check for conflicts with existing events on a given date and time window.
+    
+    Args:
+        date: date in YYYY-MM-DD format
+        start_time: start time in HH:MM format (24-hour)
+        end_time: end time in HH:MM format (24-hour)
+    """
+    service = get_service()
+    return check_conflicts(
+        service=service,
+        date=date,
+        start_time=start_time,
+        end_time=end_time
+    )
+
+
+def book_calendar_event(
+    title: str,
+    date: str,
+    start_time: str,
+    end_time: str,
+    description: str = "",
+    attendees: list[str] = [],
+    location: str = "",
+    force: bool = False,
+) -> dict:
+    """Book a new calendar event.
+    
+    Args:
+        title: summary or title of the event
+        date: date in YYYY-MM-DD format
+        start_time: start time in HH:MM format (24-hour)
+        end_time: end time in HH:MM format (24-hour)
+        description: optional description
+        attendees: list of email addresses of attendees
+        location: optional location
+        force: set to True to force book even if there are conflicts
+    """
+    service = get_service()
+    return book_event(
+        service=service,
+        title=title,
+        date=date,
+        start_time=start_time,
+        end_time=end_time,
+        description=description,
+        attendees=attendees,
+        location=location,
+        force=force
+    )
+
+
+# 1. Define the ADK Agent
+root_agent = LlmAgent(
+    name="CalendarAgent",
+    model=LiteLlm(model="gemini/gemini-2.5-flash"),
+    instruction=(
+        "You are a helpful calendar assistant. Your job is to draft email notifications "
+        "to meeting attendees regarding flight delays and updates. You should write the "
+        "email draft directly in your text response. You also have access to tools for "
+        "booking events and checking conflicts."
+    ),
+    tools=[book_calendar_event, check_calendar_conflicts]
+)
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────

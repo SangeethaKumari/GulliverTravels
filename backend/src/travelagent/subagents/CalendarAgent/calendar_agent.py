@@ -18,12 +18,14 @@ import datetime
 from zoneinfo import ZoneInfo
 import google.generativeai as genai
 
-from config import get_service, TIMEZONE, GEMINI_API_KEY
-from book_calendar   import book_event
-from edit_calendar   import edit_event
-from delete_calendar import delete_event
-from list_calendar   import list_events, print_events
-from check_conflicts import check_conflicts
+from backend.src.mcp.tools.config import get_service, TIMEZONE, GEMINI_API_KEY
+from backend.src.mcp.tools.book_calendar import book_event
+from backend.src.mcp.tools.edit_calendar import edit_event
+from backend.src.mcp.tools.delete_calendar import delete_event
+# pyrefly: ignore [missing-import]
+from backend.src.mcp.tools.list_calendar import list_events
+# pyrefly: ignore [missing-import]
+from backend.src.mcp.tools.check_conflicts import check_conflicts
 
 genai.configure(api_key=GEMINI_API_KEY)
 
@@ -68,7 +70,7 @@ class CalendarAgent:
     """
 
     def __init__(self):
-        self.model   = genai.GenerativeModel("gemini-1.5-flash")
+        self.model   = genai.GenerativeModel("gemini-2.5-flash")
         self.history = []   # stores last results for 'book anyway' flow
         try:
             self.service           = get_service()

@@ -99,3 +99,47 @@ app_states             sessions
 sqlite> SELECT * FROM app_states;
 AmbientTravelOrchestrator|{}|2026-05-18 20:13:59
 sqlite> 
+
+
+CREATE TABLE adk_internal_metadata (
+	"key" VARCHAR(128) NOT NULL, 
+	value VARCHAR(256) NOT NULL, 
+	PRIMARY KEY ("key")
+);
+CREATE TABLE sessions (
+	app_name VARCHAR(128) NOT NULL, 
+	user_id VARCHAR(128) NOT NULL, 
+	id VARCHAR(128) NOT NULL, 
+	state TEXT NOT NULL, 
+	create_time DATETIME NOT NULL, 
+	update_time DATETIME NOT NULL, 
+	PRIMARY KEY (app_name, user_id, id)
+);
+CREATE TABLE app_states (
+	app_name VARCHAR(128) NOT NULL, 
+	state TEXT NOT NULL, 
+	update_time DATETIME NOT NULL, 
+	PRIMARY KEY (app_name)
+);
+CREATE TABLE user_states (
+	app_name VARCHAR(128) NOT NULL, 
+	user_id VARCHAR(128) NOT NULL, 
+	state TEXT NOT NULL, 
+	update_time DATETIME NOT NULL, 
+	PRIMARY KEY (app_name, user_id)
+);
+CREATE TABLE events (
+	id VARCHAR(128) NOT NULL, 
+	app_name VARCHAR(128) NOT NULL, 
+	user_id VARCHAR(128) NOT NULL, 
+	session_id VARCHAR(128) NOT NULL, 
+	invocation_id VARCHAR(256) NOT NULL, 
+	timestamp DATETIME NOT NULL, 
+	event_data TEXT, 
+	PRIMARY KEY (id, app_name, user_id, session_id), 
+	FOREIGN KEY(app_name, user_id, session_id) REFERENCES sessions (app_name, user_id, id) ON DELETE CASCADE
+);
+CREATE INDEX idx_events_app_user_session_ts ON events (app_name, user_id, session_id, timestamp DESC);
+
+#run the AmbientOrchestration agent
+uv run python -m backend.src.travelagent.AmbientOrchestration

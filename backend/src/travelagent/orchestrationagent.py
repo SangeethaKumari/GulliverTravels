@@ -1,11 +1,12 @@
 import asyncio
 import json
 import os
+from datetime import date
 from typing import Any, Dict
 
 # Google ADK ecosystem components for agent loops and database synchronization
 from google.adk import Agent
-from google.adk.runners import Runner
+from google.adk.runners import Runner, InMemoryRunner
 from google.genai import types
 
 # NATIVE FIX: Import Event along with Session and State
@@ -15,7 +16,8 @@ from google.adk.sessions.database_session_service import DatabaseSessionService
 
 # Core project MCP tool abstractions
 
-from backend.src.mcp.fastmcp_server import get_weather, estimate_route, get_calendar, flight_status
+from backend.src.mcp.fastmcp_server import get_weather, estimate_route, get_calendar
+from backend.src.travelagent.subagents.FlightAgent.agent import root_agent as FlightAgent
 class AmbientOrchestratorAgent:
     """An autonomous supervisory agent utilizing Google ADK state managemecnt.
 
@@ -24,7 +26,7 @@ class AmbientOrchestratorAgent:
     database.
     """
 #optional input parameters, we can also use default values
-    def __init__(self, flight_number: str, meeting_id: str, flight_airlinecode:str, flight_date:str):
+    def __init__(self, flight_number: str, meeting_id: str, flight_airlinecode:str, flight_date:date):
         self.agent_name = "AmbientTravelOrchestrator"
         self.flight_number = flight_number
         self.meeting_id = meeting_id
@@ -79,7 +81,6 @@ class AmbientOrchestratorAgent:
         # Formulate an event tracking the specific key mutations
         sync_event = Event(
             author="system",
-            actions={"state_delta": changed_keys}
         )
         
         session = await self._get_or_init_session()
@@ -143,13 +144,38 @@ class AmbientOrchestratorAgent:
             f"\n[{self.agent_name}] --- Sensing Cycle Execution [Factual Check] ---"
         )
 
-        # 1. PERCEIVE: Query current flight metrics from your MCP tool pipeline
-        #def flight_status_realtime(airline_code:str,flight_number:str,input_date):
+        # 1. PERCEIVE: Query current flight metrics from FlightAgent
+        from google.genai import types
+        input_date_str = self.flight_date.strftime("%Y%m%d") if isinstance(self.flight_date, date) else self.flight_date
+        prompt = f"Get the flight status for airline code {self.flight_airlinecode}, flight number {self.flight_number}, and date {input_date_str}."
+        new_message = types.Content(role="user", parts=[types.Part(text=prompt)])
 
-        flight_info = flight_status(self.flight_airlinecode,self.flight_number,self.flight_date)
+        main_supervisor = Agent(
+            name="MainSupervisor",
+            model="gemini-2.0-flash-exp",  
+            instruction=(
+                "You are a master executive assistant. Your job is to fulfill the user's travel request. "
+                "Deconstruct the request and delegate tasks to the FlightAgent. "
+                "Do not try to search flights or modify calendars yourself—always delegate to your specialized tools. "
+                "Synthesize their outputs into a final cohesive response for the user."
+            ),
+            tools=[FlightAgent]  # Worker agents exposed as tools
+        )
 
         
-
+        runner = InMemoryRunner(agent=main_supervisor)
+        runner.auto_create_session = True
+        flight_info = ""
+        
+        # This will now automatically initialize the FlightAgent and run its tool
+        async for event in runner.run_async(
+            user_id="system",
+            session_id=self.session_id,  # Uses the persistent SQL session
+            new_message=new_message
+        ):
+            # Capture the output from the FlightAgent tool
+            if hasattr(event, 'content') and event.content and event.content.parts:
+                flight_info = "".join([part.text for part in event.content.parts if part.text])
         # Default value if we can't extract it
         current_status = "on_time"
         #As of now the  tool is returning a string, later we will use the 
@@ -189,16 +215,27 @@ class AmbientOrchestratorAgent:
             f"\n[{self.agent_name}] --- Sensing Cycle Execution [Factual Check] ---"
         )
 
-        # 1. PERCEIVE: Query current flight metrics from your MCP tool pipeline
-        #def flight_status_realtime(airline_code:str,flight_number:str,input_date):
+        # 1. PERCEIVE: Query current flight metrics from FlightAgent
+        from google.genai import types
+        input_date_str = self.flight_date.strftime("%Y%m%d") if isinstance(self.flight_date, date) else self.flight_date
+        prompt = f"Get the flight status for airline code {self.flight_airlinecode}, flight number {self.flight_number}, and date {input_date_str}."
+        new_message = types.Content(role="user", parts=[types.Part(text=prompt)])
         
-        
-        # # 1. Define a specialized Flight agent to act as the "tool"
-        
-
-        flight_info = flight_status(self.flight_airlinecode,self.flight_number,self.flight_date)
+        runner = InMemoryRunner(agent=FlightAgent)
+        runner.auto_create_session = True
+        flight_info = ""
+        async for event in runner.run_async(
+            user_id="system",
+            session_id=self.meeting_id,
+            new_message=new_message
+        ):
+            if hasattr(event, 'content') and event.content and event.content.parts:
+                current_text = "".join([part.text for part in event.content.parts if part.text])
+                if current_text.strip():
+                    flight_info = current_text
         # Default value if we can't extract itx
         current_status = "on_time"
+        actual_arrival_str = ""
         #As of now the  tool is returning a string, later we will use the 
         # Pydantic response from the tool    
         # Scan the text block line by line to extract the value
@@ -206,8 +243,7 @@ class AmbientOrchestratorAgent:
             if "**Status:**" in line:
                 # Splits the line at "**Status:** " and takes everything to the right
                 current_status = line.split("**Status:**")[-1].strip()
-                break
-            if "**arrival_time:**" in line:
+            elif "**arrival_time:**" in line:
                 actual_arrival_str = line.split("**arrival_time:**")[-1].strip()
         
         # FIX: Synchronize current status step
@@ -271,14 +307,6 @@ class AmbientOrchestratorAgent:
         )
         calendar_info = get_calendar(self.meeting_id)
 
-        # Append fresh delay metrics into the database history chain
-        raw_delay = 30 if current_status.lower() == "delayed" else 0
-        updated_history = list(session.state.get("delay_history", []))
-        updated_history.append(raw_delay)
-        
-        # FIX: Synchronize history modifications
-        await self._sync_state_changes({"delay_history": updated_history})
-
         # 3. THINK: Orchestrate data execution by invoking worker functions
         print(
             f"[{self.agent_name}] Distributing context to downstream specialized sub-agents..."
@@ -300,7 +328,7 @@ class AmbientOrchestratorAgent:
         )
 
         # 5. ACT: Evaluate limits to declare active mitigations or quiet checkpoints
-        if adjusted_p < 0.60 or (raw_delay > 90 and meeting_weight > 0.7):
+        if adjusted_p < 0.60 or (raw_delay >= 90 and meeting_weight > 0.7):
             print(
                 f"[{self.agent_name}] Critical boundary breach. Triggering notification engine."
             )

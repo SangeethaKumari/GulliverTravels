@@ -82,6 +82,14 @@ pip install -r requirements.txt
 4. Create credentials → **OAuth 2.0 Client ID** → Desktop app
 5. Download and save as `credentials.json` in this folder
 6. Add yourself as a test user → APIs & Services → OAuth consent screen → Test users
+To add as test user:
+Click on Audience (it is the third option down, right below Branding).
+
+Scroll down to the Test users section on that page.
+
+Click the + Add Users button.
+
+Type in the Google email address you want to use for testing and click Save.
 
 ### 3. Set environment variables
 
