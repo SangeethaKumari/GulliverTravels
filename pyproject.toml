@@ -23,6 +23,10 @@ dependencies = [
     "pytest-asyncio>=1.4.0",
     "google-auth-oauthlib>=1.4.0",
     "google-generativeai>=0.8.6",
+    "torch>=2.12.0",
+    "peft>=0.19.1",
+    "sentence-transformers>=5.5.1",
+    "trl>=1.5.1",
 ]
 
 [tool.pyright]

@@ -476,8 +476,7 @@ class AmbientOrchestratorAgent:
             print(f"⚠️ [{self.agent_name}] DSPy cloud module timed out after 15 seconds! Dropping connection.")
             print(f"[{self.agent_name}] Activating local backup text template immediately to preserve loop uptime.")
             email_body = '''Good afternoon, I regret to inform you that due to heavy rain and unexpected road closures, 
-            I will be delayed by approximately 90 minutes and will not be able to attend the 2:00
-            PM executive meeting. I can join remotely at 4:00 PM, or at 5:00 PM 
+            I will be delayed by approximately 90 minutes and will not be able to attend the meeting. I can join remotely 
             today if that is preferable. Alternatively, we can resume the discussion tomorrow at 3:30 PM. 
             Please let me know which option best accommodates your schedules. 
             Thank you for your understanding and flexibility.'''
@@ -602,11 +601,11 @@ class AmbientOrchestratorAgent:
 # ── Entry point ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     AmbientOrchestratorAgent(
-        flight_number      = "123",
-        meeting_id         = "0146a6uuhb25pvrga9gknva15l",
+        flight_number      = "456",
+        meeting_id         = "3o61p3rpj8jjt7uac6vv0t0gb7",
         flight_airlinecode = "UA",
-        flight_date        = date(2026, 5, 30),
-        scheduled_arrival  = "2026-05-30T17:45:00",
+        flight_date        = date(2026, 5, 31),
+        scheduled_arrival  = "2026-05-31T17:45:00",
         user_email         = "[EMAIL_ADDRESS]",
     ).start()
 

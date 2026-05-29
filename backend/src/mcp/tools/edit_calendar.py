@@ -7,13 +7,7 @@ Usage (standalone):
 
 import datetime
 from zoneinfo import ZoneInfo
-try:
-    from backend.src.mcp.tools.config import get_service, TIMEZONE
-except ImportError:
-    try:
-        from .config import get_service, TIMEZONE
-    except ImportError:
-        from config import get_service, TIMEZONE
+from backend.src.mcp.tools.config import get_service, TIMEZONE
 
 
 # ── Core function ─────────────────────────────────────────────────────────────
