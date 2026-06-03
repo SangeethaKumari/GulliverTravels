@@ -75,6 +75,9 @@ npm run dev # run the frontend
 ```
 *Port: 5173 (default)*
 
+### DB clearing
+rm orchestrator_state.db 
+
 ## API Usage
 
 ### Chat with the TravelAgent
