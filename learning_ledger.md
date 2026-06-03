@@ -75,33 +75,14 @@ This ledger compiles the technical, structural, and conceptual issues identified
 * **Discussion/Root Cause:** In Google Calendar API, updates are silent by default. To notify all attendees, the `sendUpdates="all"` parameter must be explicitly passed in the `update()` payload. It was missing in `edit_calendar.py`.
 * **Resolution/Correction:** Added the `sendUpdates="all"` argument to `service.events().update()` inside `backend/src/mcp/tools/edit_calendar.py`.
 
-### 📅 Issue 11: Email Alternative Times and Calendar Rescheduled Time Mismatch
-* **Symptom:** The email notification sent to attendees proposed alternative meeting times (e.g. 4:30 PM or 5:30 PM), but the actual rescheduled calendar event was set to a different time (e.g. 5:00 PM), causing confusion.
-* **Discussion/Root Cause:** The `proposed_times` sent as inputs to the DSPy notification composer were hardcoded to `start_dt + 1 hour` and `start_dt + 2 hours`, whereas the calendar event was updated dynamically using `start_dt + delay_minutes`.
-* **Resolution/Correction:** Updated both calculations to be driven by `delay_minutes` so they are fully aligned. The proposed times are now dynamically calculated as `start_dt + delay_minutes` and `start_dt + delay_minutes + 30`, matching the actual rescheduled calendar event start time.
-
-### 📅 Issue 12: Timezone Date Shifts on UTC Event Formats
-* **Symptom:** The calendar event date shifted incorrectly to the next day (May 31 instead of May 30) for attendees, resulting in timezone confusion.
-* **Discussion/Root Cause:** Google Calendar API returns meeting times in UTC serialization formats (e.g., `'2026-05-31T00:00:00Z'`). If the code formats this datetime string directly without first converting it to the local Pacific timezone, the naive string parsed by the agent represents the UTC day. When saved back to the calendar, it shifts the event forward by the timezone offset (7 hours), moving it to May 31.
-* **Resolution/Correction:** Added explicit `.astimezone(tz)` conversions (using `zoneinfo.ZoneInfo("America/Los_Angeles")`) to all fetched datetime strings in `AmbientOrchestration.py`, `edit_calendar.py`, and `check_conflicts.py` before any formatting or editing occurs.
-
 ---
 
 ## 5. Git & Workspace Cleanliness Issues
 
-### 📁 Issue 13: Tracking SQLite Databases and Test JSONs in Git
+### 📁 Issue 11: Tracking SQLite Databases and Test JSONs in Git
 * **Symptom:** Local database files (`orchestrator_state.db`) and transient test runs were getting indexed by git, leading to merge conflicts and clutter in the commit history.
 * **Discussion/Root Cause:** The workspace root did not have specific rules ignoring SQLite extensions (`.db`, `.db-journal`) or generated developer cache directories.
 * **Resolution/Correction:** Configured `.gitignore` to explicitly ignore persistent SQLite state files (`orchestrator_state.db`) and local environment overrides, keeping the repository history clean.
-
-### 📁 Issue 14: Secret Key Push Protection Block on Google OAuth Client Secrets
-* **Symptom:** Git push to GitHub was rejected with the error: `GH013: Repository rule violations found ... Push cannot contain secrets (Google OAuth Client ID & Secret)`.
-* **Discussion/Root Cause:** The active Google client secrets JSON file (`backend/src/travelagent/tools/client_secret_*.apps.googleusercontent.com.json`) was staged and committed. Even though a generic pattern existed in `.gitignore`, the file had already been cached in the Git index before the ignore rule was applied.
-* **Resolution/Correction:** 
-  1. Undid the commit using a soft reset (`git reset --soft HEAD~1`).
-  2. Unstaged the secret key file and local SQLite state files using `git restore --staged`.
-  3. Updated `.gitignore` to use explicit recursive directory wildcards (e.g. `**/client_secret_*.json`, `**/credentials.json`, `**/token.pickle`) to prevent future recursive leaks.
-  4. Created a clean commit and pushed to GitHub successfully.
 
 ---
 
@@ -114,3 +95,69 @@ This ledger compiles the technical, structural, and conceptual issues identified
 ### 💡 Learning 2: Safeguard Constraints in Agent Committees
 * **Concept:** A committee-based decision (e.g., merging `TimeAgent`, `RiskAgent`, and `ImpactAgent` outputs) should have logical overrides.
 * **Takeaway:** Even if `adjusted_probability` is calculated above the reschedule threshold (e.g., 73%), a strict safeguard like `(delay >= 90 mins and meeting_weight > 0.7)` is necessary to bypass model estimations and guarantee negotiation on high-importance, long-delay scenarios.
+
+---
+
+## 7. RLVR Training Pipeline & Static Type Checker Issues
+
+### 🛠️ Issue 12: Tokenizer Initialization NoneType Attribute Error
+* **Symptom:** Running tokenizer properties checking raised static/runtime NoneType errors: `Object of class NoneType has no attribute eos_token`.
+* **Discussion/Root Cause:** The `AutoTokenizer.from_pretrained` function has a return signature that includes `None` in type stubs. Direct property accesses triggered static type-checker warnings, and could fail at runtime if initialization returned `None`.
+* **Resolution/Correction:** Implemented a non-None guard immediately following tokenizer loading:
+  ```python
+  if tokenizer is None:
+      raise ValueError("Failed to load tokenizer")
+  ```
+
+### 🛠️ Issue 13: Mismatched Parameter Types for `reward_funcs` in GRPOTrainer
+* **Symptom:** Linter reported argument type incompatibility when instantiating `GRPOTrainer` with custom reward functions: `Argument list[((completions: list[str], **kwargs) -> list[float])] is not assignable to parameter reward_funcs`.
+* **Discussion/Root Cause:** TRL's `RewardFunc` is type-hinted as `Callable[..., list[float | None]]`. Because Python's generic `list` type is invariant, a function returning `list[float]` is not considered compatible with `list[float | None]`.
+* **Resolution/Correction:** Updated all reward function signatures (`reward_len`, `reward_style`, `reward_correct`) to return `list[float | None]`.
+
+### 🛠️ Issue 14: LoRA Mixed Model Parameter Assignment Error
+* **Symptom:** Linter error: `Argument PeftMixedModel | PeftModel is not assignable to parameter model with type PeftModel | PreTrainedModel | str` in `GRPOTrainer.__init__`.
+* **Discussion/Root Cause:** `get_peft_model` returns a `PeftMixedModel` or `PeftModel`, but `GRPOTrainer.__init__` lacks `PeftMixedModel` in its parameter type signature annotations.
+* **Resolution/Correction:** Cast the wrapped model to `typing.Any` before passing it to `GRPOTrainer`.
+
+### 🛠️ Issue 15: Merged Model Tensor Conversion Warning
+* **Symptom:** Linter error: `Expected a callable, got Tensor` on calling `merged_model.save_pretrained(...)`.
+* **Discussion/Root Cause:** Pyright inferred `merged_model` type from `merge_and_unload()` as a `Tensor` or couldn't resolve the PEFT method output properly, leading to warnings when calling `.save_pretrained()`.
+* **Resolution/Correction:** Added dynamic `hasattr` verification and annotated `merged_model` explicitly as `typing.Any` to bypass Pyright's strict model-type inference.
+
+---
+
+## 8. Real-Time Flight Monitoring & UI Integration Issues
+
+### 🛠️ Issue 16: Alphanumeric Airline Code Parsing & Digit Splitting Clashes
+* **Symptom:** Alphanumeric airline codes like `F9` failed to match, and prepositions like `on` or years like `2026` were captured as airline codes. Single letter entries like `F 456` caused digit splitting (`Airline: 45 | Flight: 6`).
+* **Discussion/Root Cause:** The boundary regex `\b([A-Za-z0-9]{2})\s*(\d{1,4})\b` allowed purely numeric strings to be split inside words without checking for letter presence, causing digit components of flight numbers to be misclassified as airline codes.
+* **Resolution/Correction:** Restricted the airline code matching pattern to require at least one letter: `\b([A-Za-z]{3}|[A-Za-z][A-Za-z0-9]|[A-Za-z0-9][A-Za-z])\s*(\d{1,4})\b`, and implemented an exclusion filter for common English prepositions (`on`, `at`, etc.).
+
+### 🛠️ Issue 17: Absence of Real-Time Status Dashboards in UI
+* **Symptom:** The user was left with a static chat message after flight monitoring was activated, with no visibility into the background poll progress or state updates.
+* **Discussion/Root Cause:** The background orchestrator persisted state to SQLite in another thread, but the FastAPI app had no status polling endpoint, and the React frontend had no interface to visualize the background state.
+* **Resolution/Correction:** Exposed a `/api/monitor/status` GET endpoint, added structured flight metadata to the `/chat` response, and built a polling-based glassmorphism dashboard in `App.jsx` showing the timeline of delay history logs, live status indicators, and negotiation updates.
+
+### 🛠️ Issue 18: Empty Delay Logs for On-Time Flight Monitoring
+* **Symptom:** When a flight was on time, the dashboard timeline remained blank and showed "Waiting for first polling update...", making the user think monitoring was dead.
+* **Discussion/Root Cause:** The background thread returned early on `on_time` status checks before computing or syncing delay logs to the `delay_history` database list.
+* **Resolution/Correction:** Modified the `on_time` block in `AmbientOrchestration.py` to write `0` minutes into the database's `delay_history` array on every poll, giving immediate visual feedback in the UI timeline.
+
+### 🛠️ Issue 19: Missing Reschedule Emails on Flight Cancellation
+* **Symptom:** If a flight was cancelled, the orchestrator immediately stopped monitoring but failed to trigger the negotiation email or notify attendees.
+* **Discussion/Root Cause:** The cancellation handler inside `_sensing_cycle` exited early without calling `_send_email`. Additionally, passing a string `"cancelled"` component to `_send_email` raised `TypeError` inside `timedelta` calculations.
+* **Resolution/Correction:** Updated the cancellation check to fetch calendar data and call `_send_email` with `"cancelled"` as the duration parameter, and refactored the email helper to process this string gracefully, outputting a "Reschedule Required" payload for the DSPy optimizer without arithmetic errors.
+
+### 🛠️ Issue 20: API Startup Bottleneck from High JSON Payload Initialization
+* **Symptom:** The FastAPI application startup was delayed and endpoint requests returned timeout errors during initial bootstrap because large optimization datasets and signature JSONs (e.g. `optimized_notification_composer.json`) were being parsed synchronously, blocking the event loop.
+* **Discussion/Root Cause:** The application lacked monitoring capabilities to verify if JSON assets had successfully loaded and whether sub-agent configurations had initialized properly, causing failures to happen silently.
+* **Resolution/Correction:** Implemented active `/health` routes on both the Gateway (`main.py`) and Sub-agents (`calendarAPI.py`) serving as readiness checks. Added a structured health monitor response confirming service status, initialization stamps, and health rate stats to ensure the application is warm before handling traffic.
+
+### 🛠️ Issue 21: Premature Monitoring Loop Expiration due to Naive Timezone Comparisons
+* **Symptom:** Starting or restarting flight monitoring immediately terminated the loop with `🛑 Monitoring Finished: window expired (4h past scheduled arrival)`.
+* **Discussion/Root Cause:** The `scheduled_arrival` was parsed as a timezone-naive ISO string from the mock API database (representing local Pacific time). The loop expired check used `datetime.now(timezone.utc) - self.scheduled_arrival.replace(tzinfo=timezone.utc)`, comparing a UTC timestamp with a local time formatted as UTC. At 15:50 local time, the elapsed difference calculated was over 5 hours in the past, triggering premature shutdown.
+* **Resolution/Correction:** Updated the window calculation in `AmbientOrchestration.py` to localize both datetimes to the `America/Los_Angeles` timezone prior to subtracting, ensuring accurate elapsed hours relative to local schedules.
+
+
+
+

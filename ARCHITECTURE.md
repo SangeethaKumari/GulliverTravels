@@ -8,15 +8,52 @@ GulliverTravels is a multimodal agentic system consisting of a React frontend an
 
 ```mermaid
 graph TD
-    A[Frontend React/Vite] -->|HTTP POST /chat| B[FastAPI Gateway main.py]
-    B -->|Manages Sessions| C[InMemoryRunner]
-    C -->|Executes| D[root_agent agent.py]
-    D -->|Calls via LiteLLM| E[Remote LLM Endpoint]
-    D -->|Calls Tools via MCP| F[FastMCP Server server.py]
-    F -->|Returns Tool Result| D
-    D -->|Streaming Events| C
-    C -->|Response Text| B
-    B -->|JSON Response| A
+    subgraph Frontend Client
+        A[React UI / Vite]
+    end
+
+    subgraph FastAPI Backend Gateway (main.py)
+        B[FastAPI Routes]
+        C[InMemoryRunner]
+        D[root_agent agent.py]
+        STATUS_API[GET /api/monitor/status]
+    end
+
+    subgraph Persistent Database
+        DB[(SQLite State DB<br/>orchestrator_state.db)]
+    end
+
+    subgraph Background Ambient Loop (AmbientOrchestration.py)
+        ORCH[AmbientOrchestratorAgent]
+        COMM[Committee Agents<br/>Time, Risk, Impact]
+        DSPy[DSPy Notification Composer]
+    end
+
+    subgraph External Protocols & Services
+        MCP[FastMCP Server<br/>tools.py]
+        CalAgent[CalendarAgent ADK]
+        GCal[Google Calendar API]
+    end
+
+    %% Client Interactions
+    A -->|1. POST /chat| B
+    A -->|5. Poll status every 3s| STATUS_API
+
+    %% Chat Path
+    B -->|2. Manage chat sessions| C
+    C -->|3. Run| D
+    D -->|4. Trigger background task| ORCH
+
+    %% Status Path
+    STATUS_API -->|6. Query session state| DB
+    
+    %% Background Loop
+    ORCH -->|7. Heartbeat Poll| MCP
+    ORCH -->|8. Sync status & logs| DB
+    ORCH -->|9. Run Decisions| COMM
+    ORCH -->|10. Compose Emails| DSPy
+    ORCH -->|11. Schedule Update| CalAgent
+    CalAgent -->|12. Reschedule & Email Guests| GCal
 ```
 
 ---

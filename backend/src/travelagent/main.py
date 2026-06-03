@@ -8,6 +8,7 @@ import time
 import httpx
 
 
+from datetime import date
 from typing import Optional
 from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -111,10 +112,87 @@ class AddResponse(BaseModel):
     result: float
     operation: str
 
+def get_next_meeting_id(landing_time_iso: Optional[str] = None) -> str:
+    """Helper to query the traveler's next Google Calendar event dynamically starting after flight landing."""
+    try:
+        from backend.src.mcp.tools.config import get_service
+        from datetime import datetime, timezone
+        service = get_service()
+        
+        # Filter meetings starting after the flight lands (Strategy 1)
+        time_min = landing_time_iso if landing_time_iso else datetime.now(timezone.utc).isoformat()
+        
+        events_result = service.events().list(  # type: ignore
+            calendarId='primary',
+            timeMin=time_min,
+            maxResults=5,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        events = events_result.get('items', [])
+        if events:
+            for event in events:
+                logger.info(f"[Calendar Event Found] ID: {event['id']} | Summary: {event.get('summary')} | Start: {event['start'].get('dateTime')}")
+            return events[0]['id']
+    except Exception as e:
+        logger.error(f"Error fetching next meeting from Calendar API: {e}")
+    # Fallback to the default meeting ID
+    # return "3o61p3rpj8jjt7uac6vv0t0gb7"
+    return "3a9o753qsql5qubpor6pul14r4"
+
+def start_background_monitoring(airline_code: str, flight_number: str, flight_date: date) -> tuple[str, str, str]:
+    """Starts the AmbientOrchestratorAgent loop in the background and returns status info."""
+    # 1. Pre-fetch flight details to get the planned scheduled arrival
+    try:
+        from backend.src.mcp.tools.tools import flight_status_realtime
+        flight_info = flight_status_realtime(airline_code, flight_number, flight_date)
+        scheduled_arrival = flight_info.Arrival_Time.isoformat()
+        status = flight_info.Status
+    except Exception as e:
+        logger.error(f"Failed to fetch flight status for initial setup: {e}")
+        scheduled_arrival = f"{flight_date.isoformat()}T17:45:00"
+        status = "unknown"
+
+    # 2. Get the next meeting starting after the scheduled landing time
+    meeting_id = get_next_meeting_id(scheduled_arrival)
+
+    from backend.src.travelagent.AmbientOrchestration import AmbientOrchestratorAgent
+    agent = AmbientOrchestratorAgent(
+        flight_number=flight_number,
+        meeting_id=meeting_id,
+        flight_airlinecode=airline_code,
+        flight_date=flight_date,
+        scheduled_arrival=scheduled_arrival,
+        user_email="test@company.com",
+    )
+    
+    # Run the polling loop inside FastAPI's running event loop asynchronously
+    asyncio.create_task(agent._loop())
+    return agent.session_id, status, scheduled_arrival
+
 # ── Routes ────────────────────────────────────────────
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "service": "GulliverTravels API"}
+
+@app.get("/api/monitor/status")
+async def get_monitor_status(session_id: str):
+    import sqlite3
+    import json
+    try:
+        conn = sqlite3.connect("orchestrator_state.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT state FROM sessions WHERE id = ?;", (session_id,))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            state_data = json.loads(row[0])
+            return {"status": "success", "session_id": session_id, "state": state_data}
+        else:
+            return {"status": "not_found", "session_id": session_id}
+    except Exception as e:
+        logger.error(f"Error querying monitor status: {e}")
+        return {"status": "error", "message": str(e)}
 
 @app.post("/chat")
 async def chat(request_body: ChatRequest, token: str = Depends(verify_token)):
@@ -123,17 +201,59 @@ async def chat(request_body: ChatRequest, token: str = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="No message or prompt provided")
     
     try:
-        # We use the global runner which has session persistence
+        import re
+        from datetime import date
+        
+        # Intercept flight tracking commands: e.g., "monitor UA123", "track F9 2486", etc.
+        # Restrict airline code to 2-3 characters containing at least one letter to prevent splitting purely numeric strings
+        matches = re.findall(r'\b([A-Za-z]{3}|[A-Za-z][A-Za-z0-9]|[A-Za-z0-9][A-Za-z])\s*(\d{1,4})\b', message)
+        match = None
+        for m in matches:
+            if m[0].lower() not in ["on", "at", "in", "to", "by", "is", "it", "me", "he", "we", "us", "am", "an", "as", "if", "of", "or"]:
+                match = m
+                break
+                
+        if match and any(keyword in message.lower() for keyword in ["monitor", "track", "flight", "ambient"]):
+            airline_code = match[0].upper()
+            flight_number = match[1]
+            
+            # Detect custom date (YYYY-MM-DD or MM/DD/YYYY)
+            date_match = re.search(r'\b(\d{4})[-/](\d{2})[-/](\d{2})\b', message)
+            if date_match:
+                flight_date = date(int(date_match.group(1)), int(date_match.group(2)), int(date_match.group(3)))
+            else:
+                # Default to June 1st 2026 or today if not specified
+                flight_date = date(2026, 6, 1)
+                
+            session_id, status, arrival_time = start_background_monitoring(airline_code, flight_number, flight_date)
+            
+            status_formatted = status.upper().replace("_", " ")
+            status_emoji = "🟢" if "ON TIME" in status_formatted else ("🔴" if "DELAYED" in status_formatted or "CANCELLED" in status_formatted else "🟡")
+            
+            return {
+                "response": f"🛫 **Flight Monitoring Activated**\n\n"
+                            f"Flight: **{airline_code} {flight_number}** on **{flight_date.isoformat()}**\n"
+                            f"Current Status: {status_emoji} **{status_formatted}**\n"
+                            f"Arrival Time: **{arrival_time}**\n\n"
+                            f"Linked to upcoming calendar event. Ambient monitoring is running in the background.\n"
+                            f"Active session ID: `{session_id}`",
+                "session_id": session_id,
+                "flight_number": flight_number,
+                "airline_code": airline_code,
+                "status": status,
+                "arrival_time": arrival_time
+            }
+
+        # Otherwise fall back to standard LLM chat agent
         new_message = types.Content(role="user", parts=[types.Part(text=message)])
         events = runner.run(user_id=request_body.user_id, session_id=request_body.session_id, new_message=new_message)
          
         full_response_text = ""
         for event in events:
-            if hasattr(event, 'content') and event.content:
+            if hasattr(event, 'content') and event.content and event.content.parts:
                 # We extract the text from the current event
                 current_text = "".join([part.text for part in event.content.parts if part.text])
                 if current_text.strip():
-                    # Instead of +=, we use = to ensure we only get the LATEST agent's final answer
                     full_response_text = current_text
         
         return {"response": full_response_text.strip() or "No response from agent"}
@@ -163,7 +283,7 @@ async def transcribe(request: TranscribeRequest, token: str = Depends(verify_tok
         
         # Initialize the LiteLLM model with the custom endpoint
         llm = LiteLlm(
-            model="gemini/gemini-3-pro-preview",
+            model="gemini/gemini-2.5-pro",
             api_base=os.getenv("LITELLM_API_BASE", "http://10.0.10.51:8124/v1"),
             api_key=os.getenv("LITELLM_API_KEY", "sv-openai-api-key")
         )
@@ -178,11 +298,22 @@ async def transcribe(request: TranscribeRequest, token: str = Depends(verify_tok
             types.Part(text="Please transcribe this audio exactly as spoken. Return ONLY the transcription.")
         ])
         
-        # Execute the agent
-        response = agent.execute(new_message=new_message)
+        # Execute the agent using InMemoryRunner
+        runner = InMemoryRunner(agent=agent)
+        events = runner.run(
+            user_id=request.user_id,
+            session_id=request.session_id,
+            new_message=new_message
+        )
         
-        transcription = response.text.strip()
-        return {"transcription": transcription}
+        transcription = ""
+        for event in events:
+            if hasattr(event, 'content') and event.content and event.content.parts:
+                for part in event.content.parts:
+                    if hasattr(part, 'text') and part.text:
+                        transcription += part.text
+                        
+        return {"transcription": transcription.strip()}
         
     except Exception as e:
         logger.error(f"Transcription Error: {e}")
@@ -254,8 +385,8 @@ if __name__ == "__main__":
 
     if ENV == "dev":
         logger.info("🔧 Running in DEV mode — hot reload enabled")
-        # Note: using "travelagent.main:app" because of the package structure
-        uvicorn.run("travelagent.main:app", host="0.0.0.0", port=8000, reload=True, workers=1, log_level="debug")
+        # Note: using "backend.src.travelagent.main:app" because of the package structure
+        uvicorn.run("backend.src.travelagent.main:app", host="0.0.0.0", port=8000, reload=True, workers=1, log_level="debug")
     else:
         logger.info("🚀 Running in PROD mode")
-        uvicorn.run("travelagent.main:app", host="0.0.0.0", port=8000, reload=False, workers=4, log_level="warning")
+        uvicorn.run("backend.src.travelagent.main:app", host="0.0.0.0", port=8000, reload=False, workers=4, log_level="warning")

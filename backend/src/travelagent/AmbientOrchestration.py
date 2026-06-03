@@ -43,10 +43,12 @@ from backend.src.mcp.fastmcp_server import get_weather, estimate_route, get_cale
 from backend.src.travelagent.dspyoptimizer import NotificationComposer
 
 import litellm
-litellm._turn_on_debug()
+#litellm._turn_on_debug()
 
-POLL_INTERVAL_SECONDS = 5   # ← set to 30 for demos
+POLL_INTERVAL_SECONDS = 18   # ← set to 30 for demos
 APP_NAME = "ambient_travel_companion"
+#monitor AA 456 on 2026-06-01
+#monitor AA 2486 on 2026-06-01
 
 _composer = NotificationComposer()
 _base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -134,8 +136,8 @@ class AmbientOrchestratorAgent:
 
     # ── Main polling loop ──────────────────────────────────────────────────────
 
-    MAX_POLLS = 10              # hard ceiling — 48 × 5 min = 4 hours max
-    MONITORING_WINDOW_HOURS = 4  # stop if scheduled arrival is this far in the past
+    MAX_POLLS = 6        # hard ceiling
+    MONITORING_WINDOW_HOURS = 72  # stop if scheduled arrival is this far in the past
 
     async def _heartbeat(self):
         while True:
@@ -159,7 +161,9 @@ class AmbientOrchestratorAgent:
                     break
 
                 # ── Exit 2: monitoring window expired ─────────────────────────
-                hours_elapsed = (datetime.now(timezone.utc) - self.scheduled_arrival.replace(tzinfo=timezone.utc)).total_seconds() / 3600                
+                current_time_la = datetime.now(ZoneInfo("America/Los_Angeles"))
+                scheduled_arrival_la = self.scheduled_arrival.replace(tzinfo=ZoneInfo("America/Los_Angeles")) if self.scheduled_arrival.tzinfo is None else self.scheduled_arrival.astimezone(ZoneInfo("America/Los_Angeles"))
+                hours_elapsed = (current_time_la - scheduled_arrival_la).total_seconds() / 3600
                 if hours_elapsed > self.MONITORING_WINDOW_HOURS:
                     stop_reason = f"window expired ({self.MONITORING_WINDOW_HOURS}h past scheduled arrival)"
                     break
@@ -208,6 +212,16 @@ class AmbientOrchestratorAgent:
 
         if current_status == "cancelled":
             self._log_ledger("cancellation", 0, None, None, 1.0)
+            
+            # Send cancellation email alert
+            email_already_sent = session.state.get("email_sent", False)
+            if not email_already_sent:
+                calendar_info = get_calendar(self.meeting_id)
+                await self._send_email(flight_info, "cancelled", 0.0, calendar_info)
+                await self._sync({"email_sent": True})
+            else:
+                print("   • Cancellation email already sent. Skipping.")
+                
             await self._sync({"is_monitoring_active": False})
             print("🛑 [ACT] Flight cancelled. Stopping monitor.")
             return True, "flight cancelled"
@@ -218,6 +232,11 @@ class AmbientOrchestratorAgent:
 
         if current_status == "on_time":
             print("✅ [COMPUTE] Flight is on time. Remaining quiet.")
+            # Sync 0 delay to the history so the UI dashboard registers active polling progress
+            old_history = list(session.state.get("delay_history", []))
+            delay_history = list(old_history)
+            delay_history.append(0)
+            await self._sync({"delay_history": delay_history})
             return False, ""
 
         # ── 2. COMPUTE delay minutes ───────────────────────────────────────────
@@ -412,9 +431,13 @@ class AmbientOrchestratorAgent:
         # 1. Resolve attendees and times dynamically if calendar_info is available
         attendees = ["meeting attendees"]
         meeting_weight = "high"
+        
+        is_cancelled = (delay_minutes == "cancelled")
+        delay_val = 0 if is_cancelled else int(delay_minutes)
+        
         proposed_times = [
-            (datetime.now() + timedelta(minutes=delay_minutes)).strftime("%I:%M %p"),
-            (datetime.now() + timedelta(minutes=delay_minutes + 30)).strftime("%I:%M %p"),
+            (datetime.now() + timedelta(minutes=delay_val)).strftime("%I:%M %p"),
+            (datetime.now() + timedelta(minutes=delay_val + 30)).strftime("%I:%M %p"),
         ]
         
         if calendar_info:
@@ -436,15 +459,15 @@ class AmbientOrchestratorAgent:
                     tz = ZoneInfo("America/Los_Angeles")
                     start_dt = datetime.fromisoformat(start_str).astimezone(tz)
                     proposed_times = [
-                        (start_dt + timedelta(minutes=delay_minutes)).strftime("%I:%M %p"),
-                        (start_dt + timedelta(minutes=delay_minutes + 30)).strftime("%I:%M %p"),
+                        (start_dt + timedelta(minutes=delay_val)).strftime("%I:%M %p"),
+                        (start_dt + timedelta(minutes=delay_val + 30)).strftime("%I:%M %p"),
                     ]
                 except Exception:
                     pass
 
         # 2. Construct the scenario for the DSPy optimizer
         scenario = {
-            "delay_duration":  delay_minutes,
+            "delay_duration":  "cancelled" if is_cancelled else delay_val,
             "meeting_weight":  meeting_weight,
             "attendees":       attendees,
             "weather":         "unknown",
@@ -487,13 +510,20 @@ class AmbientOrchestratorAgent:
         # 4. Reschedule event using CalendarAgent and update description with the email body
         start_str = calendar_info.get("start") if calendar_info else None
         end_str = calendar_info.get("end") if calendar_info else None
-        if start_str and end_str:
+        
+        if is_cancelled:
+            prompt = (
+                f"Edit event {self.meeting_id}. "
+                f"Since the flight was cancelled, move the meeting to tomorrow at the same time or cancel it entirely. "
+                f"Update the description to say: {email_body}"
+            )
+        elif start_str and end_str:
             try:
                 tz = ZoneInfo("America/Los_Angeles")
                 start_dt = datetime.fromisoformat(start_str).astimezone(tz)
                 end_dt = datetime.fromisoformat(end_str).astimezone(tz)
-                new_start = start_dt + timedelta(minutes=delay_minutes)
-                new_end = end_dt + timedelta(minutes=delay_minutes)
+                new_start = start_dt + timedelta(minutes=delay_val)
+                new_end = end_dt + timedelta(minutes=delay_val)
                 prompt = (
                     f"Edit event {self.meeting_id}. "
                     f"Set start to {new_start.strftime('%H:%M')} and end to {new_end.strftime('%H:%M')} on {new_start.strftime('%Y-%m-%d')}. "
@@ -502,13 +532,13 @@ class AmbientOrchestratorAgent:
             except Exception:
                 prompt = (
                     f"Edit event {self.meeting_id}. "
-                    f"Delay the start and end time by {delay_minutes} minutes. "
+                    f"Delay the start and end time by {delay_val} minutes. "
                     f"Update the description to say: {email_body}"
                 )
         else:
             prompt = (
                 f"Edit event {self.meeting_id}. "
-                f"Delay the start and end time by {delay_minutes} minutes. "
+                f"Delay the start and end time by {delay_val} minutes. "
                 f"Update the description to say: {email_body}"
             )
         
@@ -574,8 +604,46 @@ class AmbientOrchestratorAgent:
         # ── Committee agent stubs (replace with real AgentTool calls) ─────────────
 
     async def _call_time_agent(self, flight_info: FlightStatusRealtime, route_info: Dict) -> Dict[str, Any]:
-        # TODO: wire to your TimeAgent
+       # TODO: wire to your TimeAgent
         return {"p_arrive_by_deadline": 0.78}
+
+    async def _call_time_agent_v1(self, flight_info: FlightStatusRealtime, route_info: Dict) -> Dict[str, Any]:
+        # 1. Adapt flight_info to the dictionary format expected by TimeAgent.assess
+        flight_dict = {
+            "currentStatus": flight_info.Status,
+            "estimatedLanding": flight_info.Arrival_Time.isoformat()
+        }
+        
+        # 2. Adapt route_info to the format expected by TimeAgent.assess
+        drive_min = route_info.get("baseline_drive_minutes", 45)
+        route_dict = {
+            "durationSeconds": drive_min * 60,
+            "durationInFreeFlowSeconds": drive_min * 60
+        }
+        
+        # 3. Retrieve calendar info to parse the meeting start time dynamically
+        calendar_info = get_calendar(self.meeting_id)
+        start_str = calendar_info.get("start")
+        if start_str:
+            try:
+                meeting_start = datetime.fromisoformat(start_str)
+            except Exception:
+                meeting_start = self.scheduled_arrival + timedelta(hours=2)
+        else:
+            meeting_start = self.scheduled_arrival + timedelta(hours=2)
+            
+        # 4. Instantiate and call the TimeAgent
+        from backend.src.travelagent.subagents.TimeAgent.time_agent import TimeAgent
+        agent = TimeAgent()
+        output = agent.assess(
+            flight=flight_dict,
+            route=route_dict,
+            ride_eta_min=15,  # default ride ETA in minutes
+            meeting_start=meeting_start,
+            flight_number=flight_info.flight_number,
+        )
+        
+        return {"p_arrive_by_deadline": output.p_arrive_by_deadline}
 
     async def _call_risk_agent(self, weather_info: Dict, history: list) -> Dict[str, Any]:
         # TODO: wire to your RiskAgent
@@ -601,12 +669,10 @@ class AmbientOrchestratorAgent:
 # ── Entry point ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     AmbientOrchestratorAgent(
-        flight_number      = "456",
-        meeting_id         = "3o61p3rpj8jjt7uac6vv0t0gb7",
-        flight_airlinecode = "UA",
-        flight_date        = date(2026, 5, 31),
-        scheduled_arrival  = "2026-05-31T17:45:00",
+        flight_number      = "2486",                # Frontier 2486 Non-stop
+        meeting_id         = "3a9o753qsql5qubpor6pul14r4",
+        flight_airlinecode = "F9",                  # Frontier Airlines
+        flight_date        = date(2026, 6, 1),      # Matching your June 1st timeline
+        scheduled_arrival  = "2026-06-01T19:34:00", # 7:34 PM Arrival (Forces an active conflict check)
         user_email         = "[EMAIL_ADDRESS]",
     ).start()
-
-    

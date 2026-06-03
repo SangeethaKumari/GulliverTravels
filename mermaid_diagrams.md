@@ -69,7 +69,7 @@ sequenceDiagram
 This diagram shows the complete Sensing, Thinking, and Acting execution cycle of the `AmbientOrchestratorAgent`, including SQLite session database persistence, FastMCP tool integration, committee decision overrides, DSPy notification generation, and the Google Calendar notification update dispatch.
 
 ### Visual Sequence Diagram
-![Orchestrator Sequence Diagram](orchestrator_sequence_diagram.png)
+![Orchestrator Sequence Diagram](orchestrator_sequence_diagram_updated.png)
 
 ### Text-Based Sequence Diagram
 ```text

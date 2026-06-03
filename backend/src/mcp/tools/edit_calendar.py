@@ -59,6 +59,16 @@ def edit_event(
         use_start = start_time or existing_start.strftime("%H:%M")
         use_end   = end_time   or existing_end.strftime("%H:%M")
 
+        import re
+        date_match = re.search(r'(\d{4}-\d{2}-\d{2})', use_date)
+        use_date = date_match.group(1) if date_match else use_date
+        
+        start_match = re.search(r'(\d{1,2}:\d{2})', use_start)
+        use_start = start_match.group(1) if start_match else use_start
+        
+        end_match = re.search(r'(\d{1,2}:\d{2})', use_end)
+        use_end = end_match.group(1) if end_match else use_end
+
         new_start = datetime.datetime.strptime(
             f"{use_date} {use_start}", "%Y-%m-%d %H:%M"
         ).replace(tzinfo=tz)
@@ -69,11 +79,15 @@ def edit_event(
         event["start"] = {"dateTime": new_start.isoformat(), "timeZone": TIMEZONE}
         event["end"]   = {"dateTime": new_end.isoformat(),   "timeZone": TIMEZONE}
 
-    updated = (
-        service.events()
-        .update(calendarId="primary", eventId=event_id, body=event, sendUpdates="all")
-        .execute()
-    )
+    try:
+        updated = (
+            service.events()
+            .update(calendarId="primary", eventId=event_id, body=event, sendUpdates="all")
+            .execute()
+        )
+    except Exception as e:
+        print(f"❌ [edit_calendar] CRITICAL ERROR updating Google Calendar API: {e}")
+        raise e
 
     return {
         "status":   "updated",

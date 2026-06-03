@@ -30,3 +30,9 @@ rm orchestrator_state.db
 # run the mcpserver 
 (gullivertravels) (base) sangeetha@Sangeethas-MacBook-Pro GulliverTravels % uv run python -m backend.src.mcp.fastmcp_server
 
+# To run the unit tests
+(gullivertravels) (base) sangeetha@Sangeethas-MacBook-Pro GulliverTravels % PYTHONPATH=. uv run pytest backend/src/tests/test_call_time_agent.py
+
+# Alternatively, run the test script directly
+(gullivertravels) (base) sangeetha@Sangeethas-MacBook-Pro GulliverTravels % PYTHONPATH=. uv run python backend/src/tests/test_call_time_agent.py
+

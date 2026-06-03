@@ -275,9 +275,9 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date:date | 
         now_time = datetime.now()
         if LAST_CALL_TIME is not None:
             elapsed = (now_time - LAST_CALL_TIME).total_seconds()
-            if elapsed > 120.0:
-                FLIGHT_STATUS_CALL_COUNT = 0
-                print(f"flight_status_realtime: Inactivity detected ({elapsed:.1f}s > 120s). Resetting mock call count to 0.")
+            # if elapsed > 120.0:
+            #     FLIGHT_STATUS_CALL_COUNT = 0
+            #     print(f"flight_status_realtime: Inactivity detected ({elapsed:.1f}s > 120s). Resetting mock call count to 0.")
         LAST_CALL_TIME = now_time
         
         FLIGHT_STATUS_CALL_COUNT += 1
@@ -285,7 +285,7 @@ def flight_status_realtime(airline_code:str,flight_number:str,input_date:date | 
 
         fn_str = flight_number
         print("Flight Number is " + fn_str)
-        if "123" in fn_str:
+        if "2486" in fn_str:
             if FLIGHT_STATUS_CALL_COUNT <= 3:
                 status_val = "on_time"
                 arr_dt = datetime(d.year, d.month, d.day, 17, 45, 0) # No delay
